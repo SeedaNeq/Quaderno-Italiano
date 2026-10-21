@@ -5,8 +5,9 @@ const KEY = "quaderno-italiano.v2";
 const DIRS = ["it-pl", "pl-it", "it-en", "en-it"];
 
 export const S = {
-  lvl: null, mode: "cards", dir: "it-pl", ui: "pl", itVoice: "", pos: -1,
+  lvls: [], mode: "cards", dir: "it-pl", ui: "pl", itVoice: "", pos: [], topics: [],
   boxes: {},
+  dd: null,                                           // open filter drop-down: "pos" | "topics" | null
   // per-session, not saved
   cur: null, shown: false, session: 0, last: null,   // flashcards
   quiz: null,                                         // quiz
@@ -18,16 +19,19 @@ export const S = {
 export const app = { render: () => {} };
 
 export function loadState(levels) {
-  S.lvl = levels[0];
+  S.lvls = [levels[0]];
   try {
     const d = JSON.parse(localStorage.getItem(KEY) || "{}");
-    if (levels.includes(d.lvl)) S.lvl = d.lvl;
+    const lv = Array.isArray(d.lvls) ? d.lvls.filter(l => levels.includes(l)) : levels.includes(d.lvl) ? [d.lvl] : [];   // before 1.4.0: one level in d.lvl
+    if (lv.length) S.lvls = lv;
     if (d.mode) S.mode = d.mode;
     if (["pl", "en", "it"].includes(d.ui)) S.ui = d.ui;
     if (typeof d.itVoice === "string") S.itVoice = d.itVoice;
     if (d.dir) S.dir = { it: "it-pl", pl: "pl-it" }[d.dir] || d.dir;
     if (!DIRS.includes(S.dir)) S.dir = "it-pl";
-    if (typeof d.pos === "number") S.pos = d.pos;
+    const nums = a => (Array.isArray(a) ? a.filter(n => Number.isInteger(n) && n >= 0) : []);
+    S.pos = typeof d.pos === "number" ? (d.pos >= 0 ? [d.pos] : []) : nums(d.pos);   // before 1.4.0: one number, -1 = all
+    S.topics = nums(d.topics);
     if (d.boxes) S.boxes = d.boxes;
   } catch (e) {}
 }
@@ -35,7 +39,7 @@ export function loadState(levels) {
 export function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify({
-      lvl: S.lvl, mode: S.mode, dir: S.dir, ui: S.ui, itVoice: S.itVoice, pos: S.pos, boxes: S.boxes,
+      lvls: S.lvls, mode: S.mode, dir: S.dir, ui: S.ui, itVoice: S.itVoice, pos: S.pos, topics: S.topics, boxes: S.boxes,
     }));
   } catch (e) {}
 }

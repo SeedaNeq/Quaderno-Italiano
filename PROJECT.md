@@ -14,7 +14,8 @@ netlify.toml            Netlify publikuje folder app/
 source/Wloski.xlsx      ŹRÓDŁO SŁÓW – edytujesz tylko tutaj
 source/przyklady_*.csv  zdania przykładowe do przeglądu (przed wgraniem do Excela)
 tools/excel_to_json.py  Excel → app/data/words.json (sprawdza błędy)
-tools/import_examples.py  CSV ze zdaniami → kolumny Przykład* w Excelu
+source/tematy.csv       tematy wszystkich słów (przegląd, wgrane w 1.4.0); nowe słowa dostają temat w kolumnie Temat w Excelu
+tools/import_examples.py  CSV ze zdaniami lub tematami → kolumny Przykład*/Temat w Excelu
 app/
   index.html            szkielet strony
   version.js            JEDYNE miejsce z numerem wersji
@@ -45,10 +46,11 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 ```
 - `it` – rzeczowniki zawsze z rodzajnikiem (il, lo, la, l', i, gli, le). Wyjątek: `internet`.
 - `pl`, `en` – kilka znaczeń rozdzielonych `;`; tekst w nawiasie to dopisek (pomijany przy sprawdzaniu i wymowie).
-- `pos` – noun, verb, adjective, adverb, preposition, conjunction, pronoun, interjection.
+- `pos` – noun, verb, adjective, adverb, preposition, conjunction, pronoun, interjection, numeral.
 - `g` – m/f tylko dla rzeczowników. Rzeczowniki m/f są rozdzielone na dwa wiersze (il cliente / la cliente).
 - `lvl` – A1, A2, B1, B2, C1, C2. Nowy poziom w Excelu = nowa zakładka w aplikacji automatycznie.
 - `ex`, `exPl`, `exEn` – opcjonalne zdanie przykładowe i jego tłumaczenia (wszystkie trzy albo żadne).
+- `t` – tematy, np. `["food", "nature"]` (maks. 2). W Excelu kolumna **Temat** z polskimi nazwami rozdzielonymi `;`; lista nazw i kluczy w `TOPICS` w `data.js` i `excel_to_json.py` (trzymać zgodnie).
 
 ## Decyzje (nie roztrząsać od nowa)
 - **Id słowa = `it|indeks części mowy|rodzaj`** – na nim opiera się zapisany postęp. Nie zmieniać kolejności `POS_KEYS` w `data.js`. Poprawka tłumaczenia nie kasuje postępu; zmiana pisowni włoskiego słowa – tak.
@@ -59,6 +61,10 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 - **Aktualizacje:** nowy numer w `version.js` → użytkownicy widzą pasek „Dostępna nowa wersja – Odśwież”, potem „Co nowego” z `changelog.json`.
 - **Poziomy przypisujemy uczciwie** – słowo łatwiejsze niż B2 dostaje swój prawdziwy poziom, nawet jeśli dodawaliśmy pakiet B2.
 - **Przykładowe zdania:** proste, w czasie teraźniejszym, słowo w naturalnej formie (odmienione). Fiszki – po odkryciu karty; Quiz – dopiero po odpowiedzi (żeby nie zdradzać). Tłumaczenie w języku wybranego kierunku. Tworzymy je poziomami: CSV do przeglądu → `import_examples.py` → `excel_to_json.py`.
+- **Poziomy** to niezależne przełączniki (`S.lvls`, np. `["A1","B2"]`); zawsze co najmniej jeden włączony. Bez osobnego kafelka „Wszystkie”.
+- **Filtry:** część mowy i temat to listy rozwijane z wielokrotnym wyborem (`S.pos`, `S.topics` – tablice indeksów, pusta = wszystkie); liczby w jednej liście uwzględniają drugi filtr. Lista tematów pokazuje się dopiero, gdy słowa mają tematy.
+- **Tematy (12):** Człowiek i rodzina (dane osobowe, ciało, charakter, uczucia, rodzina; też ubrania i narodowości) · Dom i otoczenie (też miasto) · Praca i edukacja · Zakupy i żywienie (też pieniądze) · Podróże i transport · Zdrowie · Czas i przyroda · Kultura, rozrywka i sport · Społeczeństwo i prawo (polityka, prawo, przestępstwa, religia) · Technologia (urządzenia, internet, wiadomości – kanały komunikacji) · Opinie i dyskusja (mówienie, wyrażanie i uzasadnianie zdania, zgoda/sprzeciw, łączniki argumentacji) · Inne (reszta: słowa ogólne i abstrakcyjne, słowa funkcyjne, liczebniki). Słowo ma 1–2 tematy.
+- **Liczebniki:** część mowy `numeral` (liczebnik, indeks 8 – dopisana na końcu `POS_KEYS`). A1: 1–20, 30–90, 100, 1000; milion to rzeczownik „il milione” (przeniesiony z A2 do A1).
 - **Interfejs** w trzech językach (PL/EN/IT); nowy tekst dodajemy do wszystkich trzech bloków w `i18n.js`.
 
 ## Jak wydać nową wersję
@@ -68,7 +74,7 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 4. `git add -A && git commit -m "opis zmiany" && git push` – Netlify sam opublikuje (gdy repo jest połączone z Netlify).
 
 ## Stan (2026-10-21)
-- Wersja **1.3.0**: 3539 słów (A1 370, A2 708, B1 1135, B2 1326). Przykładowe zdania: A1 i A2 gotowe (1078 słów). Tryby: Fiszki, Quiz, Pisanie, Lista. Kierunki IT↔PL, IT↔EN. Interfejs PL/EN/IT. PWA: instalacja, offline, pasek aktualizacji.
+- Wersja **1.4.0**: 3568 słów (A1 400, A2 707, B1 1135, B2 1326), w tym liczebniki w A1. Przykładowe zdania: A1 i A2 gotowe. Wszystkie słowa mają tematy (12). Poziomy łączone dowolnie; filtry części mowy i tematu z wielokrotnym wyborem. Tryby: Fiszki, Quiz, Pisanie, Lista. Kierunki IT↔PL, IT↔EN. Interfejs PL/EN/IT. PWA: instalacja, offline, pasek aktualizacji.
 - Kod podzielony na moduły; dane wyniesione do `data/words.json`; Excel jest źródłem.
 
 ## Do zrobienia

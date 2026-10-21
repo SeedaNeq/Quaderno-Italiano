@@ -2,11 +2,11 @@
 import { S, app, bump } from "../state.js";
 import { T } from "../i18n.js";
 import { WORDS, POS, pool, inLevel, shuffle } from "../data.js";
-import { $, esc, itHTML, tagHTML, empty, exampleHTML, SPK } from "../ui.js";
+import { $, esc, itHTML, tagHTML, empty, exampleHTML, lvlLabel, SPK } from "../ui.js";
 import { speak, canSpeak } from "../speech.js";
 
 const answerText = (w, dir) => (dir.slice(3) === "it" ? w.it : w[dir.slice(3)]);
-const quizKey = () => S.lvl + "|" + S.pos + "|" + S.dir;
+const quizKey = () => [S.lvls.join(), S.pos.join(), S.topics.join(), S.dir].join("|");
 const active = () => S.quiz && S.quiz.key === quizKey() && S.quiz.i < S.quiz.qs.length;
 
 export function newQuiz() {
@@ -29,7 +29,7 @@ export function render() {
   if (!n) { $("#view").innerHTML = empty(); return; }
 
   if (!Q || Q.key !== quizKey()) {                       // start screen
-    $("#view").innerHTML = `<section class="page stack"><div class="meta"><span>${tr.quiz} · ${esc(S.lvl)}${S.pos >= 0 ? " · " + esc(POS[S.pos][tr.posIdx]) : ""}</span><span>${tr.qn(n)}</span></div>
+    $("#view").innerHTML = `<section class="page stack"><div class="meta"><span>${tr.quiz} · ${esc(lvlLabel())}${S.pos.length === 1 ? " · " + esc(POS[S.pos[0]][tr.posIdx]) : ""}</span><span>${tr.qn(n)}</span></div>
       <div class="word" style="font-size:2.2rem">Mettiti alla prova.</div>
       <p class="hint" style="margin:0">${tr.qIntro}</p>
       <div class="row"><button class="btn primary" id="startQuiz">${tr.start}</button></div></section>`;
@@ -39,7 +39,7 @@ export function render() {
   if (Q.i >= Q.qs.length) {                              // results
     const right = Q.qs.filter(q => q.pick === q.w.id).length, miss = Q.qs.filter(q => q.pick !== q.w.id), pct = right / Q.qs.length;
     const verdict = pct >= .9 ? "Perfetto!" : pct >= .7 ? "Molto bene!" : pct >= .5 ? "Non male." : "Coraggio, riprova.";
-    $("#view").innerHTML = `<section class="page stack"><div class="meta"><span>${tr.quiz} · ${esc(S.lvl)}</span><span>${tr.end}</span></div>
+    $("#view").innerHTML = `<section class="page stack"><div class="meta"><span>${tr.quiz} · ${esc(lvlLabel())}</span><span>${tr.end}</span></div>
       <div><div class="score">${right}<small> / ${Q.qs.length}</small></div><div class="hint" style="font-size:1.05rem;margin-top:4px">${verdict}</div></div>
       ${miss.length ? `<div><div class="meta" style="margin-bottom:6px"><span>${tr.review}</span></div><ul class="misslist">${miss.map(q => `<li><b>${itHTML(q.w.it)}</b><span>${esc(Q.dir.includes("en") ? q.w.en : q.w.pl)}</span></li>`).join("")}</ul></div>` : ""}
       <div class="row"><button class="btn primary" id="startQuiz">${tr.newQuiz}</button></div></section>`;

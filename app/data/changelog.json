@@ -1,4 +1,24 @@
 {
+ "1.4.0": {
+  "pl": [
+   "Poziomy można łączyć – włącz np. A1 i B2 naraz",
+   "Nowy filtr tematów: 12 tematów, m.in. Zakupy i żywienie, Podróże, Zdrowie, Opinie i dyskusja",
+   "Części mowy i tematy wybierasz z listy – można zaznaczyć kilka",
+   "Liczebniki w A1: od 1 do 20, dziesiątki, sto, tysiąc i milion"
+  ],
+  "en": [
+   "Levels can be combined – turn on e.g. A1 and B2 together",
+   "New topic filter: 12 topics, including Shopping and food, Travel, Health, Opinions and discussion",
+   "Pick parts of speech and topics from a list – you can tick several",
+   "Numbers in A1: 1 to 20, the tens, a hundred, a thousand and a million"
+  ],
+  "it": [
+   "Puoi combinare i livelli – attiva ad es. A1 e B2 insieme",
+   "Nuovo filtro per argomento: 12 argomenti, tra cui Spesa e alimentazione, Viaggi, Salute, Opinioni e discussione",
+   "Scegli parti del discorso e argomenti da un elenco – puoi selezionarne più di uno",
+   "I numeri in A1: da 1 a 20, le decine, cento, mille e un milione"
+  ]
+ },
  "1.3.0": {
   "pl": [
    "Przykładowe zdania z tłumaczeniem dla wszystkich słów A2",

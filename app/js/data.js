@@ -2,13 +2,32 @@
 import { S, box } from "./state.js";
 
 // Order matters: the index is part of every word id (saved progress), never reorder.
-export const POS_KEYS = ["noun", "verb", "adjective", "adverb", "preposition", "conjunction", "pronoun", "interjection"];
+export const POS_KEYS = ["noun", "verb", "adjective", "adverb", "preposition", "conjunction", "pronoun", "interjection", "numeral"];
 // Names shown in the UI: [Polish, Italian, English] – index = T().posIdx
 export const POS = [
   ["rzeczownik", "sostantivo", "noun"], ["czasownik", "verbo", "verb"], ["przymiotnik", "aggettivo", "adjective"],
   ["przysłówek", "avverbio", "adverb"], ["przyimek", "preposizione", "preposition"], ["spójnik", "congiunzione", "conjunction"],
-  ["zaimek", "pronome", "pronoun"], ["wykrzyknik", "interiezione", "interjection"],
+  ["zaimek", "pronome", "pronoun"], ["wykrzyknik", "interiezione", "interjection"], ["liczebnik", "numerale", "numeral"],
 ];
+
+// Topics: key in words.json → names [Polish, Italian, English]. The Polish name is what goes into the Excel column "Temat"
+// (keep in sync with TOPICS in tools/excel_to_json.py). Order = order in the topic filter.
+export const TOPICS = [
+  ["person", "Człowiek i rodzina", "Persona e famiglia", "People and family"],
+  ["home", "Dom i otoczenie", "Casa e dintorni", "Home and surroundings"],
+  ["work", "Praca i edukacja", "Lavoro e istruzione", "Work and education"],
+  ["food", "Zakupy i żywienie", "Spesa e alimentazione", "Shopping and food"],
+  ["travel", "Podróże i transport", "Viaggi e trasporti", "Travel and transport"],
+  ["health", "Zdrowie", "Salute", "Health"],
+  ["nature", "Czas i przyroda", "Tempo e natura", "Time and nature"],
+  ["culture", "Kultura, rozrywka i sport", "Cultura, svago e sport", "Culture, leisure and sport"],
+  ["society", "Społeczeństwo i prawo", "Società e diritto", "Society and law"],
+  ["tech", "Technologia", "Tecnologia", "Technology"],
+  ["opinions", "Opinie i dyskusja", "Opinioni e discussione", "Opinions and discussion"],
+  ["other", "Inne", "Altro", "Other"],
+];
+const TOPIC_IDX = Object.fromEntries(TOPICS.map((t, i) => [t[0], i]));
+export const topicName = (i, posIdx) => TOPICS[i][1 + posIdx];
 
 export const WORDS = [];
 export let LEVELS = [];
@@ -23,7 +42,8 @@ export async function loadWords() {
     if (p < 0 || seen.has(id)) continue;
     seen.add(id);
     WORDS.push({ id, it: r.it, pl: r.pl, en: r.en || "", p, g: r.g || "", lvl: r.lvl || "?",
-      ex: r.ex || "", exPl: r.exPl || "", exEn: r.exEn || "" });
+      ex: r.ex || "", exPl: r.exPl || "", exEn: r.exEn || "",
+      t: (r.t || []).map(k => TOPIC_IDX[k]).filter(i => i !== undefined) });
   }
   LEVELS = [...new Set(WORDS.map(w => w.lvl))].sort();
 }
@@ -35,8 +55,17 @@ export const L = () => (S.dir.includes("en") ? "en" : "pl");      // the non-Ita
 export const OTHER = () => (L() === "en" ? "pl" : "en");          // the third language, shown as extra
 export const LBL = { pl: "PL", en: "EN" };
 
-export const inLevel = () => WORDS.filter(w => w.lvl === S.lvl);
-export const pool = () => inLevel().filter(w => (S.pos < 0 || w.p === S.pos) && (!S.dir.includes("en") || w.en));
+export const inLevel = () => WORDS.filter(w => S.lvls.includes(w.lvl));
+export const hasTopics = () => WORDS.some(w => w.t.length);
+
+// Filters: S.pos and S.topics are lists of indexes; an empty list means "all".
+// skip = "pos" or "topics" ignores that filter (used for the counts shown in its own drop-down).
+export function filtered(skip) {
+  const pos = skip === "pos" ? [] : S.pos, top = skip === "topics" || !hasTopics() ? [] : S.topics;
+  return inLevel().filter(w => (!pos.length || pos.includes(w.p)) && (!top.length || w.t.some(t => top.includes(t)))
+    && (!S.dir.includes("en") || w.en));
+}
+export const pool = () => filtered();
 
 export const shuffle = a => {
   a = a.slice();

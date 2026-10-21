@@ -1,11 +1,13 @@
-"""Review CSV → example columns in source/Wloski.xlsx
+"""Review CSV → columns in source/Wloski.xlsx (example sentences and/or topics)
 
 Usage (from the project folder):
     python tools/import_examples.py source/przyklady_A1.csv
+    python tools/import_examples.py source/tematy.csv
 
-The CSV (semicolon-separated, UTF-8) needs columns: Włoski, Type, Rodzaj, Przykład, Przykład PL, Przykład EN.
+The CSV (semicolon-separated, UTF-8) needs columns Włoski, Type, Rodzaj and at least one of:
+Przykład, Przykład PL, Przykład EN, Temat. Only the columns present in the CSV are imported.
 Rows are matched to the sheet "Słownik" by Włoski + Type + Rodzaj (the same key as the word id).
-Missing example columns are added to the sheet. Existing examples are overwritten.
+Missing columns are added to the sheet. Existing values are overwritten.
 Afterwards run: python tools/excel_to_json.py
 """
 import csv
@@ -19,7 +21,7 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "source" / "Wloski.xlsx"
-EXAMPLE = ["Przykład", "Przykład PL", "Przykład EN"]
+IMPORTABLE = ["Przykład", "Przykład PL", "Przykład EN", "Temat"]
 
 
 def key(it, pos, g):
@@ -31,9 +33,12 @@ def main():
         sys.exit(__doc__)
     with open(sys.argv[1], encoding="utf-8-sig", newline="") as f:
         rows = list(csv.DictReader(f, delimiter=";"))
-    missing = [c for c in ["Włoski", "Type", "Rodzaj"] + EXAMPLE if rows and c not in rows[0]]
+    missing = [c for c in ["Włoski", "Type", "Rodzaj"] if rows and c not in rows[0]]
     if missing:
         sys.exit(f"Brak kolumn w CSV: {', '.join(missing)}")
+    EXAMPLE = [c for c in IMPORTABLE if rows and c in rows[0]]
+    if not EXAMPLE:
+        sys.exit(f"CSV nie ma żadnej z kolumn: {', '.join(IMPORTABLE)}")
     new = {key(r["Włoski"], r["Type"], r["Rodzaj"]): [r[c].strip() for c in EXAMPLE] for r in rows}
 
     wb = openpyxl.load_workbook(SRC)
@@ -62,7 +67,7 @@ def main():
         print("Nie znaleziono w Excelu (pominięte):")
         print("\n".join(f"  - {k[0]} ({k[1]} {k[2]})".rstrip() for k in lost))
     wb.save(SRC)
-    print(f"Wgrano przykłady dla {len(done)} słów ({changed} zmienionych komórek) do {SRC.relative_to(ROOT)}")
+    print(f"Wgrano {', '.join(EXAMPLE)} dla {len(done)} słów ({changed} zmienionych komórek) do {SRC.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 // Small shared HTML helpers.
 import { T } from "./i18n.js";
-import { POS } from "./data.js";
+import { POS, LEVELS } from "./data.js";
+import { S } from "./state.js";
 import { mini } from "./speech.js";
 
 export const $ = s => document.querySelector(s);
@@ -38,4 +39,7 @@ export function exampleHTML(w, lang) {
   return `<div class="ex"><div class="ex-it">${esc(w.ex)} ${mini(w.ex, "it")}</div>${tr ? `<div class="ex-tr">${esc(tr)}</div>` : ""}</div>`;
 }
 
-export const empty =() => `<section class="page"><p class="hint" style="margin:0">${T().empty}</p></section>`;
+// Selected levels for headings: "B1", "A1 + B2" or "All levels"
+export const lvlLabel = () => (S.lvls.length > 1 && S.lvls.length === LEVELS.length ? T().allLvl : S.lvls.join(" + "));
+
+export const empty = () => `<section class="page"><p class="hint" style="margin:0">${T().empty}</p></section>`;

@@ -5,7 +5,8 @@ Usage (from the project folder):
 
 Reads source/Wloski.xlsx, sheet "Słownik", and writes app/data/words.json.
 Required columns (by header name): Włoski, Polski, Angielski, Type, Rodzaj, Poziom.
-Optional columns: Przykład, Przykład PL, Przykład EN (example sentence + translations).
+Optional columns: Przykład, Przykład PL, Przykład EN (example sentence + translations),
+Temat (up to 2 topics from TOPICS, separated by ";").
 Other columns (Typ, Tipo, Uwaga...) are ignored.
 Stops with a list of problems if any row is invalid, so a broken file never reaches the app.
 """
@@ -21,10 +22,17 @@ except ImportError:
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "source" / "Wloski.xlsx"
 OUT = ROOT / "app" / "data" / "words.json"
-POS = ["noun", "verb", "adjective", "adverb", "preposition", "conjunction", "pronoun", "interjection"]
+POS = ["noun", "verb", "adjective", "adverb", "preposition", "conjunction", "pronoun", "interjection", "numeral"]
 LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 ARTICLES = ("il ", "lo ", "la ", "i ", "gli ", "le ", "l'")
 EXAMPLE = {"ex": "Przykład", "exPl": "Przykład PL", "exEn": "Przykład EN"}   # json key: Excel column
+# Column "Temat": up to 2 Polish topic names separated by ";" (keep in sync with TOPICS in app/js/data.js)
+TOPICS = {
+    "człowiek i rodzina": "person", "dom i otoczenie": "home", "praca i edukacja": "work", "zakupy i żywienie": "food",
+    "podróże i transport": "travel", "zdrowie": "health", "czas i przyroda": "nature",
+    "kultura, rozrywka i sport": "culture", "społeczeństwo i prawo": "society", "technologia": "tech",
+    "opinie i dyskusja": "opinions", "inne": "other",
+}
 
 
 def text(v):
@@ -41,7 +49,7 @@ def main():
     missing = [n for n in need if n not in head]
     if missing:
         sys.exit(f"Brak kolumn: {', '.join(missing)}")
-    col = {n: head.index(n) for n in need + [x for x in EXAMPLE.values() if x in head]}
+    col = {n: head.index(n) for n in need + [x for x in [*EXAMPLE.values(), "Temat"] if x in head]}
 
     words, problems, seen = [], [], set()
     for n, r in enumerate(rows, start=2):
@@ -79,6 +87,14 @@ def main():
             w.update((k, v) for k, v in ex.items() if v)
         elif ex["exPl"] or ex["exEn"]:
             problems.append(f"wiersz {n} ({it}): tłumaczenie przykładu bez zdania włoskiego")
+        topics = [x.strip() for x in (get("Temat") or "").split(";") if x.strip()]
+        unknown = [x for x in topics if x.lower() not in TOPICS]
+        if unknown:
+            problems.append(f"wiersz {n} ({it}): nieznany temat: {', '.join(unknown)}")
+        elif len(topics) > 2:
+            problems.append(f"wiersz {n} ({it}): więcej niż 2 tematy")
+        elif topics:
+            w["t"] = [TOPICS[x.lower()] for x in topics]
         words.append(w)
 
     if problems:
