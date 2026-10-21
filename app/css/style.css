@@ -52,6 +52,16 @@ header.top{display:flex;flex-direction:column;gap:18px}
 .lvl .bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden}
 .lvl .bar i{display:block;height:100%;background:var(--good);width:0}
 .lvl .count{font-family:var(--f-mono);font-size:.7rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.lvl .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lvl.add{border-style:dashed;opacity:1;color:var(--accent)}
+.lvl.add .code{font-family:var(--f-body);font-weight:500}
+.lvl.add[aria-pressed="true"]{border-style:solid}
+
+/* own word set page */
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
+.errbox{border:1px solid var(--bad);background:var(--bad-soft);border-radius:8px;padding:10px 14px;font-size:.9rem}
+.errbox ul{margin:6px 0 0;padding-left:20px}
+.errbox p{margin:6px 0 0}
 
 .modes{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:12px}
 .tabs{display:flex;gap:4px;flex-wrap:wrap}

@@ -30,6 +30,8 @@ app/
   js/i18n.js            teksty interfejsu PL/EN/IT
   js/ui.js              wspólne kawałki HTML (rodzajnik, kropki, etykieta)
   js/speech.js          wymowa (głosy urządzenia), wybór głosu IT
+  js/myset.js           własny zestaw: wczytanie pliku, walidacja, szablon, strona zestawu (zasady na górze pliku)
+  js/sheet.js           zapis .xlsx i odczyt .xlsx/.csv bez biblioteki
   js/pwa.js             instalacja, pasek aktualizacji, „Co nowego”
   js/modes/cards.js     Fiszki
   js/modes/quiz.js      Quiz
@@ -65,6 +67,7 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 - **Filtry:** część mowy i temat to listy rozwijane z wielokrotnym wyborem (`S.pos`, `S.topics` – tablice indeksów, pusta = wszystkie); liczby w jednej liście uwzględniają drugi filtr. Lista tematów pokazuje się dopiero, gdy słowa mają tematy.
 - **Tematy (12):** Człowiek i rodzina (dane osobowe, ciało, charakter, uczucia, rodzina; też ubrania i narodowości) · Dom i otoczenie (też miasto) · Praca i edukacja · Zakupy i żywienie (też pieniądze) · Podróże i transport · Zdrowie · Czas i przyroda · Kultura, rozrywka i sport · Społeczeństwo i prawo (polityka, prawo, przestępstwa, religia) · Technologia (urządzenia, internet, wiadomości – kanały komunikacji) · Opinie i dyskusja (mówienie, wyrażanie i uzasadnianie zdania, zgoda/sprzeciw, łączniki argumentacji) · Inne (reszta: słowa ogólne i abstrakcyjne, słowa funkcyjne, liczebniki). Słowo ma 1–2 tematy.
 - **Liczebniki:** część mowy `numeral` (liczebnik, indeks 8 – dopisana na końcu `POS_KEYS`). A1: 1–20, 30–90, 100, 1000; milion to rzeczownik „il milione” (przeniesiony z A2 do A1).
+- **Własny zestaw:** jeden na przeglądarkę, kafelek obok poziomów („+” gdy brak, „Mój” gdy jest; kliknięcie aktywnego otwiera stronę zestawu). Działa osobno od poziomów (`S.my`). Słowa w localStorage `quaderno-italiano.myset`, postęp w `S.boxes` z prefiksem id `+|`. Szablon .xlsx generowany w przeglądarce w języku interfejsu (arkusz słów z listami rozwijanymi + arkusz z instrukcją). Kolumny rozpoznawane po nagłówkach PL/EN/IT, kolejność dowolna. Kierunki tylko dla języków z zestawu; filtr tematów ukryty. Plik z błędami nie jest zapisywany – lista błędów z numerami wierszy. Podmiana zestawu zachowuje postęp słów, które w nim zostały.
 - **Interfejs** w trzech językach (PL/EN/IT); nowy tekst dodajemy do wszystkich trzech bloków w `i18n.js`.
 
 ## Jak wydać nową wersję
@@ -81,9 +84,10 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 - **1.4.0** – poziomy jako niezależne przełączniki; filtry części mowy i tematu (listy z wielokrotnym wyborem); 12 tematów przypisanych do wszystkich słów (kolumna Temat); liczebniki w A1 (nowa część mowy `numeral`), il milione przeniesiony do A1; poprawki: sito (przym.), assai.
 - **1.5.0** – zdania B1 (1135).
 - **1.6.0** – zdania B2 (1326). Od tej wersji wszystkie 3568 słów ma przykładowe zdania.
+- **1.7.0** – własny zestaw słów (kafelek „+”, szablon .xlsx, wgrywanie .xlsx/.csv, walidacja, tylko wpisane języki).
 
 ## Stan (2026-10-21)
-- Wersja **1.6.0**: 3568 słów (A1 400, A2 707, B1 1135, B2 1326), w tym liczebniki w A1. Wszystkie słowa mają przykładowe zdanie z tłumaczeniem PL i EN. Wszystkie słowa mają tematy (12). Poziomy łączone dowolnie; filtry części mowy i tematu z wielokrotnym wyborem. Tryby: Fiszki, Quiz, Pisanie, Lista. Kierunki IT↔PL, IT↔EN. Interfejs PL/EN/IT. PWA: instalacja, offline, pasek aktualizacji.
+- Wersja **1.7.0**: własny zestaw słów (jeden, z pliku .xlsx/.csv). 3568 słów (A1 400, A2 707, B1 1135, B2 1326), w tym liczebniki w A1. Wszystkie słowa mają przykładowe zdanie z tłumaczeniem PL i EN. Wszystkie słowa mają tematy (12). Poziomy łączone dowolnie; filtry części mowy i tematu z wielokrotnym wyborem. Tryby: Fiszki, Quiz, Pisanie, Lista. Kierunki IT↔PL, IT↔EN. Interfejs PL/EN/IT. PWA: instalacja, offline, pasek aktualizacji.
 - Kod podzielony na moduły; dane wyniesione do `data/words.json`; Excel jest źródłem.
 
 ## Do zrobienia
@@ -92,5 +96,5 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 3. **Odmiana czasowników**: wybór poziomu i czasu, losowana osoba. Tabele odmiany w osobnym arkuszu Excela; czasy przypisane do poziomów.
 4. **Gramatyka**: zagadnienia od A1, teoria + ćwiczenia; zacząć od 5–6 tematów A1.
 5. **Słownictwo C1 i C2** – później.
-6. **Własny zestaw słów** (backlog): zakładka „+” obok poziomów → wgranie pliku → praca na tych słowach we wszystkich trybach (Fiszki, Quiz, Pisanie, Lista). Potrzebny szablon do pobrania (te same kolumny co arkusz „Słownik”, przykłady opcjonalne). Do decyzji: format pliku (CSV prosto w przeglądarce; .xlsx wymaga biblioteki), zestaw i postęp tylko w przeglądarce (localStorage), osobny klucz postępu, żeby nie mieszać ze słownikiem, walidacja z czytelnymi błędami (jak w `excel_to_json.py`), usuwanie/podmiana zestawu.
+6. **Własny zestaw słów** – zrobione w 1.7.0. Do sprawdzenia przez Wojtka: otwarcie szablonu w prawdziwym Excelu / Google Sheets / Numbers i wgranie pliku na iPhonie. Możliwe rozszerzenia: kilka zestawów, opcjonalne kolumny ze zdaniami przykładowymi.
 7. Opcjonalnie: wspólny postęp na wielu urządzeniach (wymaga logowania, np. Firebase/Supabase); nagrane pliki wymowy.

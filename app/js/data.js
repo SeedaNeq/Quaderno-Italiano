@@ -48,6 +48,17 @@ export async function loadWords() {
   LEVELS = [...new Set(WORDS.map(w => w.lvl))].sort();
 }
 
+// Own word set (see myset.js). Ids start with "+|" so its progress never mixes with the dictionary.
+export const MY = { name: "", words: [] };
+export function setMy(name, list) {
+  MY.name = name;
+  MY.words = list.map(r => ({ id: "+|" + r.it + "|" + r.p + "|" + (r.g || ""), it: r.it, pl: r.pl || "", en: r.en || "", p: r.p, g: r.g || "",
+    lvl: "+", ex: "", exPl: "", exEn: "", t: [] }));
+}
+// A language can be used only if the current word source has it (the own set may have only PL or only EN)
+export const hasLang = l => !S.my || MY.words.some(w => w[l]);
+export function fixDir() { if (!hasLang(L())) S.dir = S.dir.replace(L(), OTHER()); }
+
 // Direction helpers, e.g. S.dir = "it-pl"
 export const SRC = () => S.dir.slice(0, 2);
 export const TGT = () => S.dir.slice(3);
@@ -55,15 +66,15 @@ export const L = () => (S.dir.includes("en") ? "en" : "pl");      // the non-Ita
 export const OTHER = () => (L() === "en" ? "pl" : "en");          // the third language, shown as extra
 export const LBL = { pl: "PL", en: "EN" };
 
-export const inLevel = () => WORDS.filter(w => S.lvls.includes(w.lvl));
-export const hasTopics = () => WORDS.some(w => w.t.length);
+export const inLevel = () => (S.my ? MY.words : WORDS.filter(w => S.lvls.includes(w.lvl)));
+export const hasTopics = () => !S.my && WORDS.some(w => w.t.length);
 
 // Filters: S.pos and S.topics are lists of indexes; an empty list means "all".
 // skip = "pos" or "topics" ignores that filter (used for the counts shown in its own drop-down).
 export function filtered(skip) {
   const pos = skip === "pos" ? [] : S.pos, top = skip === "topics" || !hasTopics() ? [] : S.topics;
   return inLevel().filter(w => (!pos.length || pos.includes(w.p)) && (!top.length || w.t.some(t => top.includes(t)))
-    && (!S.dir.includes("en") || w.en));
+    && w[L()]);
 }
 export const pool = () => filtered();
 

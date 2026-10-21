@@ -1,4 +1,21 @@
 {
+ "1.7.0": {
+  "pl": [
+   "Własny zestaw słów: kafelek „+” obok poziomów",
+   "Pobierz szablon Excela, wpisz swoje słowa i wgraj plik – działa we wszystkich trybach",
+   "Wystarczy włoski i jeden język: polski lub angielski"
+  ],
+  "en": [
+   "Your own word set: the “+” tile next to the levels",
+   "Download the Excel template, fill in your words and upload the file – works in every mode",
+   "Italian plus one language is enough: Polish or English"
+  ],
+  "it": [
+   "Le tue parole: la casella “+” accanto ai livelli",
+   "Scarica il modello Excel, inserisci le tue parole e carica il file – funziona in tutte le modalità",
+   "Bastano l'italiano e una lingua: polacco o inglese"
+  ]
+ },
  "1.6.0": {
   "pl": [
    "Przykładowe zdania z tłumaczeniem dla wszystkich słów B2",

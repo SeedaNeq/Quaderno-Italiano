@@ -6,8 +6,10 @@ const DIRS = ["it-pl", "pl-it", "it-en", "en-it"];
 
 export const S = {
   lvls: [], mode: "cards", dir: "it-pl", ui: "pl", itVoice: "", pos: [], topics: [],
+  my: false,                                          // true = working on the own word set instead of the levels
   boxes: {},
   dd: null,                                           // open filter drop-down: "pos" | "topics" | null
+  myPage: false, myErr: null, myDel: false,           // own set page: shown, upload errors, delete confirmation
   // per-session, not saved
   cur: null, shown: false, session: 0, last: null,   // flashcards
   quiz: null,                                         // quiz
@@ -32,6 +34,7 @@ export function loadState(levels) {
     const nums = a => (Array.isArray(a) ? a.filter(n => Number.isInteger(n) && n >= 0) : []);
     S.pos = typeof d.pos === "number" ? (d.pos >= 0 ? [d.pos] : []) : nums(d.pos);   // before 1.4.0: one number, -1 = all
     S.topics = nums(d.topics);
+    S.my = d.my === true;
     if (d.boxes) S.boxes = d.boxes;
   } catch (e) {}
 }
@@ -39,7 +42,7 @@ export function loadState(levels) {
 export function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify({
-      lvls: S.lvls, mode: S.mode, dir: S.dir, ui: S.ui, itVoice: S.itVoice, pos: S.pos, topics: S.topics, boxes: S.boxes,
+      lvls: S.lvls, mode: S.mode, dir: S.dir, ui: S.ui, itVoice: S.itVoice, pos: S.pos, topics: S.topics, my: S.my, boxes: S.boxes,
     }));
   } catch (e) {}
 }

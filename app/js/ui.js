@@ -39,7 +39,7 @@ export function exampleHTML(w, lang) {
   return `<div class="ex"><div class="ex-it">${esc(w.ex)} ${mini(w.ex, "it")}</div>${tr ? `<div class="ex-tr">${esc(tr)}</div>` : ""}</div>`;
 }
 
-// Selected levels for headings: "B1", "A1 + B2" or "All levels"
-export const lvlLabel = () => (S.lvls.length > 1 && S.lvls.length === LEVELS.length ? T().allLvl : S.lvls.join(" + "));
+// Selected levels for headings: "B1", "A1 + B2", "All levels" or the own set
+export const lvlLabel = () => (S.my ? T().mySet : S.lvls.length > 1 && S.lvls.length === LEVELS.length ? T().allLvl : S.lvls.join(" + "));
 
 export const empty = () => `<section class="page"><p class="hint" style="margin:0">${T().empty}</p></section>`;

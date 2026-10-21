@@ -6,7 +6,7 @@ import { $, esc, itHTML, tagHTML, empty, exampleHTML, lvlLabel, SPK } from "../u
 import { speak, canSpeak } from "../speech.js";
 
 const answerText = (w, dir) => (dir.slice(3) === "it" ? w.it : w[dir.slice(3)]);
-const quizKey = () => [S.lvls.join(), S.pos.join(), S.topics.join(), S.dir].join("|");
+const quizKey = () => [S.my ? "+" : S.lvls.join(), S.pos.join(), S.topics.join(), S.dir].join("|");
 const active = () => S.quiz && S.quiz.key === quizKey() && S.quiz.i < S.quiz.qs.length;
 
 export function newQuiz() {

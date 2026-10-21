@@ -1,7 +1,7 @@
 // Entry point: loads words, draws the shared top bar, routes clicks/keys to the active mode.
 import { S, app, save, box, loadState } from "./state.js";
 import { T } from "./i18n.js";
-import { WORDS, LEVELS, POS, TOPICS, topicName, loadWords, filtered, hasTopics, pool } from "./data.js";
+import { WORDS, LEVELS, POS, TOPICS, MY, topicName, loadWords, filtered, hasTopics, hasLang, fixDir, pool } from "./data.js";
 import { $, esc } from "./ui.js";
 import { speak, renderVoice, initSpeech } from "./speech.js";
 import { renderPwa, initPwa, install, applyUpdate, closeNews } from "./pwa.js";
@@ -9,6 +9,7 @@ import * as cards from "./modes/cards.js";
 import * as quiz from "./modes/quiz.js";
 import * as write from "./modes/write.js";
 import * as list from "./modes/list.js";
+import * as myset from "./myset.js";
 
 const MODES = { cards, quiz, write, list };
 
@@ -19,18 +20,22 @@ function renderTop() {
   $("#uiSel").value = S.ui;
   $("#tabCards").textContent = tr.cards; $("#tabQuiz").textContent = tr.quiz;
   $("#tabWrite").textContent = tr.write; $("#tabList").textContent = tr.list;
-  $("#dirLbl").textContent = tr.dir; $("#dirSel").value = S.dir;
+  $("#dirLbl").textContent = tr.dir;
+  for (const o of $("#dirSel").options) o.disabled = o.hidden = !hasLang(o.value.includes("en") ? "en" : "pl");   // own set: only its languages
+  $("#dirSel").value = S.dir;
   $("#pos").setAttribute("aria-label", tr.pos);
-  document.querySelectorAll("#modes .tab").forEach(b => b.setAttribute("aria-selected", b.dataset.mode === S.mode));
+  document.querySelectorAll("#modes .tab").forEach(b => b.setAttribute("aria-selected", !S.myPage && b.dataset.mode === S.mode));
 
-  // Levels are independent toggles: any combination, at least one stays on
-  $("#levels").innerHTML = LEVELS.map(c => {
-    const ws = WORDS.filter(w => w.lvl === c), learned = ws.filter(w => (box(w) || 0) >= 3).length;
-    return `<button class="lvl" data-lvl="${esc(c)}" aria-pressed="${S.lvls.includes(c)}">
-      <span class="code">${esc(c)}</span><span class="name">${esc(tr.lvl[c] || "")}</span>
+  // Levels are independent toggles: any combination, at least one stays on. The own set is the last tile and works alone.
+  const tile = (attrs, code, name, ws) => {
+    const learned = ws.filter(w => (box(w) || 0) >= 3).length;
+    return `<button class="lvl" ${attrs}><span class="code">${esc(code)}</span><span class="name">${esc(name)}</span>
       <span class="bar"><i style="width:${Math.round(learned / ws.length * 100)}%"></i></span>
       <span class="count">${learned}/${ws.length} ${tr.mastered}</span></button>`;
-  }).join("");
+  };
+  $("#levels").innerHTML = LEVELS.map(c => tile(`data-lvl="${esc(c)}" aria-pressed="${!S.my && S.lvls.includes(c)}"`, c, tr.lvl[c] || "", WORDS.filter(w => w.lvl === c))).join("")
+    + (MY.words.length ? tile(`data-my="on" aria-pressed="${S.my}" title="${esc(MY.name)}"`, tr.myCode, MY.name, MY.words)
+      : `<button class="lvl add" data-my="page" aria-pressed="${S.myPage}"><span class="code" aria-hidden="true">+</span><span class="name">${tr.mySet}</span><span class="count">${tr.myAdd}</span></button>`);
 
   // Counts in each drop-down respect the other filter, e.g. "verbs" under the topic Food
   const byPos = filtered("pos"), byTopic = filtered("topics");
@@ -59,7 +64,7 @@ function toggleFilter(kind, i) {
 
 function render() {
   renderTop(); renderVoice(); renderPwa();
-  (MODES[S.mode] || cards).render();
+  (S.myPage ? myset : MODES[S.mode] || cards).render();
 }
 app.render = render;
 
@@ -77,13 +82,19 @@ document.addEventListener("click", e => {
   if (d.dd) { S.dd = S.dd === d.dd ? null : d.dd; render(); const b = document.querySelector(`[data-dd="${d.dd}"]`); if (b) b.focus(); return; }
   if (d.f) { toggleFilter(d.f, +d.i); return; }
   if (d.lvl) {
-    const on = S.lvls.includes(d.lvl);
-    if (on && S.lvls.length === 1) return;                               // keep at least one level
-    S.lvls = on ? S.lvls.filter(l => l !== d.lvl) : LEVELS.filter(l => l === d.lvl || S.lvls.includes(l));
+    S.myPage = false;
+    if (S.my) { S.my = false; S.lvls = [d.lvl]; S.wcur = null; }          // leaving the own set: start from the tapped level
+    else {
+      const on = S.lvls.includes(d.lvl);
+      if (on && S.lvls.length === 1) { render(); return; }               // keep at least one level
+      S.lvls = on ? S.lvls.filter(l => l !== d.lvl) : LEVELS.filter(l => l === d.lvl || S.lvls.includes(l));
+    }
     S.cur = null; S.confirm = false; S.limit = 200; if (!pool().length) { S.pos = []; S.topics = []; }
     save(); render(); return;
   }
-  if (d.mode) { S.mode = d.mode; S.confirm = false; save(); render(); return; }
+  if (d.my === "on") { if (S.my && !S.myPage) { S.myPage = true; render(); } else { S.myPage = false; myset.use(); } return; }   // tapping the active set opens its page
+  if (d.my === "page") { S.myPage = !S.myPage || !!MY.words.length; S.myErr = null; S.myDel = false; render(); return; }
+  if (d.mode) { S.mode = d.mode; S.myPage = false; S.confirm = false; save(); render(); return; }
   if (d.opt) { quiz.pickOpt(d.opt); return; }
   if (d.ins) { write.insert(d.ins); return; }
   if (d.say) { speak(d.say, d.lang || "it"); return; }
@@ -102,6 +113,13 @@ document.addEventListener("click", e => {
     case "installBtn": install(); break;
     case "updBtn": applyUpdate(); break;
     case "newsClose": closeNews(); break;
+    case "myTpl": myset.downloadTemplate(); break;
+    case "myPick": $("#myFile").click(); break;
+    case "myUse": S.myPage = false; myset.use(); break;
+    case "myClose": S.myPage = false; S.myErr = null; S.myDel = false; render(); break;
+    case "myDel": S.myDel = true; render(); break;
+    case "myDelNo": S.myDel = false; render(); break;
+    case "myDelYes": myset.remove(); break;
   }
 });
 
@@ -110,6 +128,7 @@ document.addEventListener("change", e => {
   if (id === "voiceSel") { S.itVoice = v; save(); speak("Buongiorno, come stai?", "it"); }
   else if (id === "uiSel") { S.ui = v; save(); render(); }
   else if (id === "dirSel") { S.dir = v; S.shown = false; S.cur = null; S.wcur = null; save(); render(); }
+  else if (id === "myFile") { const f = e.target.files[0]; e.target.value = ""; if (f) myset.upload(f); }
 });
 
 document.addEventListener("input", e => {
@@ -119,7 +138,7 @@ document.addEventListener("input", e => {
 
 document.addEventListener("keydown", e => {
   if (S.dd && e.key === "Escape") { const k = S.dd; S.dd = null; render(); document.querySelector(`[data-dd="${k}"]`).focus(); return; }
-  if (e.target.closest(".dd")) return;                                   // Space/Enter there toggle the filter, not the card
+  if (e.target.closest(".dd") || S.myPage) return;                       // Space/Enter there toggle the filter, not the card
   const tag = e.target.tagName;
   if (S.mode === "write" && e.key === "Enter" && !e.isComposing
       && (e.target.id === "wIn" || tag !== "INPUT") && !(tag === "BUTTON" && e.target.id !== "wCheck")) { write.onEnter(e); return; }
@@ -131,7 +150,10 @@ document.addEventListener("keydown", e => {
 (async function start() {
   try { await loadWords(); }
   catch (e) { $("#view").innerHTML = `<section class="page"><p class="hint">Nie udało się wczytać listy słów (data/words.json).</p></section>`; return; }
+  myset.loadMy();
   loadState(LEVELS);
+  if (!MY.words.length) S.my = false;
+  fixDir();
   initSpeech();
   render();
   initPwa();
