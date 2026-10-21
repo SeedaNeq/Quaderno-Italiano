@@ -1,4 +1,18 @@
 {
+ "1.6.0": {
+  "pl": [
+   "Przykładowe zdania z tłumaczeniem dla wszystkich słów B2",
+   "Teraz każde słowo w aplikacji (ponad 3500) ma przykładowe zdanie"
+  ],
+  "en": [
+   "Example sentences with translations for all B2 words",
+   "Every word in the app (over 3,500) now has an example sentence"
+  ],
+  "it": [
+   "Frasi d'esempio con traduzione per tutte le parole B2",
+   "Ora ogni parola dell'app (oltre 3.500) ha una frase d'esempio"
+  ]
+ },
  "1.5.0": {
   "pl": [
    "Przykładowe zdania z tłumaczeniem dla wszystkich słów B1",
