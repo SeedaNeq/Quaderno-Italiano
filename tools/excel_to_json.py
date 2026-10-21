@@ -5,6 +5,7 @@ Usage (from the project folder):
 
 Reads source/Wloski.xlsx, sheet "Słownik", and writes app/data/words.json.
 Required columns (by header name): Włoski, Polski, Angielski, Type, Rodzaj, Poziom.
+Optional columns: Przykład, Przykład PL, Przykład EN (example sentence + translations).
 Other columns (Typ, Tipo, Uwaga...) are ignored.
 Stops with a list of problems if any row is invalid, so a broken file never reaches the app.
 """
@@ -23,6 +24,7 @@ OUT = ROOT / "app" / "data" / "words.json"
 POS = ["noun", "verb", "adjective", "adverb", "preposition", "conjunction", "pronoun", "interjection"]
 LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 ARTICLES = ("il ", "lo ", "la ", "i ", "gli ", "le ", "l'")
+EXAMPLE = {"ex": "Przykład", "exPl": "Przykład PL", "exEn": "Przykład EN"}   # json key: Excel column
 
 
 def text(v):
@@ -39,11 +41,11 @@ def main():
     missing = [n for n in need if n not in head]
     if missing:
         sys.exit(f"Brak kolumn: {', '.join(missing)}")
-    col = {n: head.index(n) for n in need}
+    col = {n: head.index(n) for n in need + [x for x in EXAMPLE.values() if x in head]}
 
     words, problems, seen = [], [], set()
     for n, r in enumerate(rows, start=2):
-        get = lambda name: text(r[col[name]]) if col[name] < len(r) else ""
+        get = lambda name: text(r[col[name]]) if name in col and col[name] < len(r) else ""
         it, pl, en, pos, g, lvl = (get(x) for x in need)
         if not it and not pl:
             continue                                   # empty row
@@ -70,6 +72,13 @@ def main():
         w = {"it": it, "pl": pl, "en": en, "pos": pos, "lvl": lvl}
         if g:
             w["g"] = g
+        ex = {k: get(x) or "" for k, x in EXAMPLE.items()}
+        if ex["ex"]:
+            if not ex["exPl"] or not ex["exEn"]:
+                problems.append(f"wiersz {n} ({it}): przykład bez tłumaczenia PL lub EN")
+            w.update((k, v) for k, v in ex.items() if v)
+        elif ex["exPl"] or ex["exEn"]:
+            problems.append(f"wiersz {n} ({it}): tłumaczenie przykładu bez zdania włoskiego")
         words.append(w)
 
     if problems:

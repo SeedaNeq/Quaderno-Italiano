@@ -1,6 +1,7 @@
 // Small shared HTML helpers.
 import { T } from "./i18n.js";
 import { POS } from "./data.js";
+import { mini } from "./speech.js";
 
 export const $ = s => document.querySelector(s);
 export const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -30,4 +31,11 @@ export function tagHTML(w) {
   return `<span class="tag ${cls}" title="${title}">${esc(it)}${g}</span>`;
 }
 
-export const empty = () => `<section class="page"><p class="hint" style="margin:0">${T().empty}</p></section>`;
+// Example sentence (Italian) with its translation in `lang` ("pl" or "en"); empty if the word has none
+export function exampleHTML(w, lang) {
+  if (!w.ex) return "";
+  const tr = lang === "en" ? w.exEn : w.exPl;
+  return `<div class="ex"><div class="ex-it">${esc(w.ex)} ${mini(w.ex, "it")}</div>${tr ? `<div class="ex-tr">${esc(tr)}</div>` : ""}</div>`;
+}
+
+export const empty =() => `<section class="page"><p class="hint" style="margin:0">${T().empty}</p></section>`;

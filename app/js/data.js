@@ -22,7 +22,8 @@ export async function loadWords() {
     const id = r.it + "|" + p + "|" + (r.g || "");
     if (p < 0 || seen.has(id)) continue;
     seen.add(id);
-    WORDS.push({ id, it: r.it, pl: r.pl, en: r.en || "", p, g: r.g || "", lvl: r.lvl || "?" });
+    WORDS.push({ id, it: r.it, pl: r.pl, en: r.en || "", p, g: r.g || "", lvl: r.lvl || "?",
+      ex: r.ex || "", exPl: r.exPl || "", exEn: r.exEn || "" });
   }
   LEVELS = [...new Set(WORDS.map(w => w.lvl))].sort();
 }

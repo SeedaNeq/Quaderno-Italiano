@@ -2,7 +2,7 @@
 import { S, app, bump } from "../state.js";
 import { T } from "../i18n.js";
 import { WORDS, POS, pool, inLevel, shuffle } from "../data.js";
-import { $, esc, itHTML, tagHTML, empty, SPK } from "../ui.js";
+import { $, esc, itHTML, tagHTML, empty, exampleHTML, SPK } from "../ui.js";
 import { speak, canSpeak } from "../speech.js";
 
 const answerText = (w, dir) => (dir.slice(3) === "it" ? w.it : w[dir.slice(3)]);
@@ -54,7 +54,8 @@ export function render() {
   }).join("");
   $("#view").innerHTML = `<section class="page"><div class="meta"><span>${tr.qOf(Q.i + 1, Q.qs.length)}</span><span>${tr.right}: ${Q.qs.slice(0, Q.i + (done ? 1 : 0)).filter(x => x.pick === x.w.id).length}</span></div>
     <div class="prompt" style="cursor:default;min-height:150px"><div class="tagrow">${tagHTML(q.w)}</div>
-      ${fromIt ? `<div class="word">${itHTML(q.w.it)}</div>` : `<div class="word pl">${esc(q.w[lq])}</div>`}</div>
+      ${fromIt ? `<div class="word">${itHTML(q.w.it)}</div>` : `<div class="word pl">${esc(q.w[lq])}</div>`}
+      ${done ? exampleHTML(q.w, lq) : ""}</div>
     <div class="opts">${opts}</div>
     <div class="actions" style="margin-top:14px">${canSpeak ? `<button class="btn icon" id="say" aria-label="${tr.say}">${SPK}</button>` : "<span></span>"}<span></span>
       <button class="btn primary" id="next" ${done ? "" : "disabled"}>${Q.i === Q.qs.length - 1 ? tr.result : tr.next} <kbd>↵</kbd></button></div></section>`;

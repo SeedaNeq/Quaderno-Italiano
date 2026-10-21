@@ -12,7 +12,9 @@ Czysty HTML + CSS + JavaScript (moduły ES), bez frameworka i bez kroku budowani
 PROJECT.md              ten plik
 netlify.toml            Netlify publikuje folder app/
 source/Wloski.xlsx      ŹRÓDŁO SŁÓW – edytujesz tylko tutaj
+source/przyklady_*.csv  zdania przykładowe do przeglądu (przed wgraniem do Excela)
 tools/excel_to_json.py  Excel → app/data/words.json (sprawdza błędy)
+tools/import_examples.py  CSV ze zdaniami → kolumny Przykład* w Excelu
 app/
   index.html            szkielet strony
   version.js            JEDYNE miejsce z numerem wersji
@@ -35,7 +37,7 @@ app/
 ```
 
 ## Format danych
-Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · Angielski · Typ · Tipo · Type · Rodzaj · Poziom · Uwaga.
+Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · Angielski · Typ · Tipo · Type · Rodzaj · Poziom · Przykład · Przykład PL · Przykład EN.
 
 `app/data/words.json` – jedno słowo w linii:
 ```json
@@ -46,6 +48,7 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 - `pos` – noun, verb, adjective, adverb, preposition, conjunction, pronoun, interjection.
 - `g` – m/f tylko dla rzeczowników. Rzeczowniki m/f są rozdzielone na dwa wiersze (il cliente / la cliente).
 - `lvl` – A1, A2, B1, B2, C1, C2. Nowy poziom w Excelu = nowa zakładka w aplikacji automatycznie.
+- `ex`, `exPl`, `exEn` – opcjonalne zdanie przykładowe i jego tłumaczenia (wszystkie trzy albo żadne).
 
 ## Decyzje (nie roztrząsać od nowa)
 - **Id słowa = `it|indeks części mowy|rodzaj`** – na nim opiera się zapisany postęp. Nie zmieniać kolejności `POS_KEYS` w `data.js`. Poprawka tłumaczenia nie kasuje postępu; zmiana pisowni włoskiego słowa – tak.
@@ -55,22 +58,24 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 - **Postęp** zapisywany w przeglądarce (localStorage, klucz `quaderno-italiano.v2`). Każdy użytkownik ma własny postęp; nie przenosi się między urządzeniami. Postęp jest przypisany do adresu strony – adresu nie zmieniamy.
 - **Aktualizacje:** nowy numer w `version.js` → użytkownicy widzą pasek „Dostępna nowa wersja – Odśwież”, potem „Co nowego” z `changelog.json`.
 - **Poziomy przypisujemy uczciwie** – słowo łatwiejsze niż B2 dostaje swój prawdziwy poziom, nawet jeśli dodawaliśmy pakiet B2.
+- **Przykładowe zdania:** proste, w czasie teraźniejszym, słowo w naturalnej formie (odmienione). Fiszki – po odkryciu karty; Quiz – dopiero po odpowiedzi (żeby nie zdradzać). Tłumaczenie w języku wybranego kierunku. Tworzymy je poziomami: CSV do przeglądu → `import_examples.py` → `excel_to_json.py`.
 - **Interfejs** w trzech językach (PL/EN/IT); nowy tekst dodajemy do wszystkich trzech bloków w `i18n.js`.
 
 ## Jak wydać nową wersję
-1. Zmiany w słowach: popraw `source/Wloski.xlsx` → `python tools/excel_to_json.py`.
+1. Zmiany w słowach: popraw `source/Wloski.xlsx` → `python tools/excel_to_json.py`. Nowe zdania z CSV: najpierw `python tools/import_examples.py source/przyklady_XX.csv`.
 2. Podnieś numer w `app/version.js` i dopisz wpis w `app/data/changelog.json`.
 3. Sprawdź lokalnie: `cd app && python -m http.server 8000` → http://localhost:8000
 4. `git add -A && git commit -m "opis zmiany" && git push` – Netlify sam opublikuje (gdy repo jest połączone z Netlify).
 
 ## Stan (2026-10-21)
-- Wersja **1.1.1**: 3539 słów (A1 370, A2 708, B1 1135, B2 1326). Tryby: Fiszki, Quiz, Pisanie, Lista. Kierunki IT↔PL, IT↔EN. Interfejs PL/EN/IT. PWA: instalacja, offline, pasek aktualizacji.
+- Wersja **1.2.0**: 3539 słów (A1 370, A2 708, B1 1135, B2 1326). Przykładowe zdania: A1 gotowe (370/370). Tryby: Fiszki, Quiz, Pisanie, Lista. Kierunki IT↔PL, IT↔EN. Interfejs PL/EN/IT. PWA: instalacja, offline, pasek aktualizacji.
 - Kod podzielony na moduły; dane wyniesione do `data/words.json`; Excel jest źródłem.
 
 ## Do zrobienia
-1. **Przykładowe zdania** w Fiszkach i Quizie – zdanie IT + tłumaczenie PL/EN dla każdego słowa (nowe kolumny w Excelu, do przejrzenia przed wgraniem).
+1. **Przykładowe zdania** – A1 gotowe; dalej A2 (708), B1 (1135), B2 (1326), każdy poziom jako CSV do przeglądu. Drobne poprawki w Excelu: „la domanda” (pl: „Do ZUS” → „do ZUS”), zbędny „;” na końcu EN w „il paese” i „per”; rozważyć dopisanie „sukienka; garnitur” do „il vestito” i „kieliszek” do „il bicchiere”.
 2. **Pisanie – uzupełnianie zdań** (IT→PL, IT→EN): zdanie po włosku z luką, podpowiedź PL/EN. Do decyzji: czy wymagać formy odmienionej, czy pokazywać formę podstawową.
 3. **Odmiana czasowników**: wybór poziomu i czasu, losowana osoba. Tabele odmiany w osobnym arkuszu Excela; czasy przypisane do poziomów.
 4. **Gramatyka**: zagadnienia od A1, teoria + ćwiczenia; zacząć od 5–6 tematów A1.
 5. **Słownictwo C1 i C2** – później.
-6. Opcjonalnie: wspólny postęp na wielu urządzeniach (wymaga logowania, np. Firebase/Supabase); nagrane pliki wymowy.
+6. **Własny zestaw słów** (backlog): zakładka „+” obok poziomów → wgranie pliku → praca na tych słowach we wszystkich trybach (Fiszki, Quiz, Pisanie, Lista). Potrzebny szablon do pobrania (te same kolumny co arkusz „Słownik”, przykłady opcjonalne). Do decyzji: format pliku (CSV prosto w przeglądarce; .xlsx wymaga biblioteki), zestaw i postęp tylko w przeglądarce (localStorage), osobny klucz postępu, żeby nie mieszać ze słownikiem, walidacja z czytelnymi błędami (jak w `excel_to_json.py`), usuwanie/podmiana zestawu.
+7. Opcjonalnie: wspólny postęp na wielu urządzeniach (wymaga logowania, np. Firebase/Supabase); nagrane pliki wymowy.

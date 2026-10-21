@@ -1,4 +1,21 @@
 {
+ "1.2.0": {
+  "pl": [
+   "Przykładowe zdania z tłumaczeniem dla wszystkich słów A1",
+   "Zdanie widać w Fiszkach po odkryciu karty i w Quizie po odpowiedzi",
+   "Zdanie można odsłuchać"
+  ],
+  "en": [
+   "Example sentences with translations for all A1 words",
+   "Shown in Flashcards after revealing the card and in the Quiz after answering",
+   "Tap the speaker to hear the sentence"
+  ],
+  "it": [
+   "Frasi d'esempio con traduzione per tutte le parole A1",
+   "Le trovi nelle flashcard dopo aver girato la carta e nel quiz dopo la risposta",
+   "Puoi ascoltare la frase"
+  ]
+ },
  "1.1.1": {
   "pl": [
    "Nowa, uporządkowana budowa aplikacji – szybsze i pewniejsze aktualizacje",

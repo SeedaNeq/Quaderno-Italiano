@@ -2,7 +2,7 @@
 import { S, app, box, bump } from "../state.js";
 import { T } from "../i18n.js";
 import { pool, pickNext, SRC, L, OTHER, LBL } from "../data.js";
-import { $, esc, itHTML, dots, tagHTML, empty, SPK } from "../ui.js";
+import { $, esc, itHTML, dots, tagHTML, empty, exampleHTML, SPK } from "../ui.js";
 import { speak, mini, canSpeak } from "../speech.js";
 
 export function render() {
@@ -12,7 +12,8 @@ export function render() {
   const b = box(w), fromIt = SRC() === "it", o = OTHER();
   const front = fromIt ? `<div class="word">${itHTML(w.it)}</div>` : `<div class="word pl">${esc(w[L()])}</div>`;
   const back = `<div class="main ${fromIt ? "" : "it"}">${fromIt ? esc(w[L()]) : itHTML(w.it)} ${fromIt ? mini(w[L()], L()) : mini(w.it, "it")}</div>`
-    + (w[o] ? `<div class="en"><b>${LBL[o]}</b>${esc(w[o])} ${mini(w[o], o)}</div>` : "");
+    + (w[o] ? `<div class="en"><b>${LBL[o]}</b>${esc(w[o])} ${mini(w[o], o)}</div>` : "")
+    + exampleHTML(w, L());
   $("#view").innerHTML = `<section class="page">
     <div class="meta"><span>${b === undefined ? tr.newWord : tr.box + " " + b + " " + dots(b)}</span><span>${tr.today}: ${S.session}</span></div>
     <div class="prompt" id="prompt" tabindex="0" role="button" aria-label="${tr.reveal}">
