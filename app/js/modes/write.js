@@ -51,12 +51,12 @@ export function render() {
   const accents = tg === "it" && !r
     ? `<div class="accents" aria-label="${tr.wAccents}">${["à", "è", "é", "ì", "ò", "ù", "'"].map(c => `<button class="acc" data-ins="${c}" tabindex="-1">${c}</button>`).join("")}</div>` : "";
   const ph = tr.wPlaceholder(tg.toUpperCase());
-  $("#view").innerHTML = `<section class="page">
+  const html = `<section class="page">
     <div class="meta"><span>${b === undefined ? tr.newWord : tr.box + " " + b + " " + dots(b)}</span><span>${tr.today}: ${S.session}</span></div>
     <div class="prompt short"><div class="tagrow">${tagHTML(w)}</div>${front}</div>
     <div class="writebox">
       <div class="inrow"><input id="wIn" class="answerIn ${r ? (r.ok ? "ok" : "bad") : ""}" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
-        lang="${tg}" placeholder="${ph}" value="${esc(S.typed)}" ${r ? "readonly" : ""} aria-label="${ph}">
+        lang="${tg}" placeholder="${ph}" value="${esc(S.typed)}" aria-label="${ph}">
         ${r ? "" : `<button class="btn primary" id="wCheck">${tr.wCheck} <kbd>↵</kbd></button>`}</div>
       ${accents}${result}
       <div class="hint">${r ? tr.wNextHint(r.ok ? tr.got : tr.again) : tr.wHint}</div>
@@ -66,8 +66,30 @@ export function render() {
       ${canSpeak ? `<button class="btn icon" id="say" aria-label="${tr.say}">${SPK}</button>` : "<span></span>"}
       <button class="btn good ${r && r.ok ? "suggest" : ""}" id="got" ${r ? "" : "disabled"}>${tr.got}</button>
     </div></section>`;
+  const old = $("#wIn");
+  if (old && document.activeElement === old) keepInput(old, html);
+  else $("#view").innerHTML = html;
   const inp = $("#wIn");
   if (inp) { try { inp.focus({ preventScroll: true }); inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {} fitWriting(); }
+}
+
+// Redraw the page around the focused answer box instead of replacing it: the box never loses focus,
+// so on phones the on-screen keyboard stays open between answers.
+function keepInput(inp, html) {
+  const root = $("#view"), tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  const fresh = tmp.querySelector("#wIn");
+  if (!fresh) { root.innerHTML = html; return; }
+  const copyAttrs = (to, from) => { for (const a of [...to.attributes]) to.removeAttribute(a.name); for (const a of from.attributes) to.setAttribute(a.name, a.value); };
+  copyAttrs(inp, fresh);
+  inp.value = S.typed;
+  for (let o = inp, n = fresh; o !== root; o = o.parentNode, n = n.parentNode) {
+    const P = o.parentNode, N = n.parentNode;
+    for (const c of [...P.childNodes]) if (c !== o) c.remove();
+    let before = true;
+    for (const c of [...N.childNodes]) { if (c === n) before = false; else if (before) P.insertBefore(c, o); else P.appendChild(c); }
+    if (P !== root) copyAttrs(P, N);
+  }
 }
 
 export function check() {
@@ -89,7 +111,7 @@ export function answer(ok) {
 // Accent buttons insert a character at the cursor
 export function insert(ch) {
   const i = $("#wIn");
-  if (!i || i.readOnly) return;
+  if (!i || S.wres) return;
   const a = i.selectionStart ?? i.value.length, z = i.selectionEnd ?? a;
   i.value = i.value.slice(0, a) + ch + i.value.slice(z);
   S.typed = i.value;

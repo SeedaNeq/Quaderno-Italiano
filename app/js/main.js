@@ -140,8 +140,15 @@ document.addEventListener("change", e => {
   else if (id === "myFile") { const f = e.target.files[0]; e.target.value = ""; if (f) myset.upload(f); }
 });
 
+// Writing: after checking, the answer box stays focused (keyboard open) but locked – typing is undone
+document.addEventListener("beforeinput", e => { if (e.target.id === "wIn" && S.wres) e.preventDefault(); });
+// Tapping a Writing button must not take focus from the answer box, or the phone keyboard closes
+document.addEventListener("mousedown", e => {
+  if (S.mode === "write" && !S.myPage && document.activeElement && document.activeElement.id === "wIn" && e.target.closest("#view button")) e.preventDefault();
+});
+
 document.addEventListener("input", e => {
-  if (e.target.id === "wIn") S.typed = e.target.value;
+  if (e.target.id === "wIn") { if (S.wres) e.target.value = S.typed; else S.typed = e.target.value; }
   else if (e.target.id === "q") list.search(e.target.value);
 });
 

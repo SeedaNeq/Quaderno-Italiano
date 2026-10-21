@@ -1,4 +1,18 @@
 {
+ "1.7.2": {
+  "pl": [
+   "W Pisaniu klawiatura ekranowa zostaje otwarta między kolejnymi słowami",
+   "Przycisk „Zainstaluj” pokazuje się pewniej w przeglądarce"
+  ],
+  "en": [
+   "In Writing, the on-screen keyboard stays open between words",
+   "The “Install” button now shows up more reliably in the browser"
+  ],
+  "it": [
+   "Nella Scrittura la tastiera resta aperta tra una parola e l'altra",
+   "Il pulsante “Installa” ora compare in modo più affidabile nel browser"
+  ]
+ },
  "1.7.1": {
   "pl": [
    "Na telefonie poziomy, filtry i kierunek chowają się pod jednym przyciskiem „Zakres” – więcej miejsca na naukę",

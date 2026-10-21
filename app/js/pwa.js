@@ -7,6 +7,10 @@ import { $, esc } from "./ui.js";
 const VERSION = self.APP_VERSION || "dev";
 const PWA = { prompt: null, waiting: null, news: null };   // news = list of changes to show once
 
+// Listen from the very start: the browser may offer installation before the word list has loaded
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); PWA.prompt = e; if ($("#foot")) renderPwa(); });
+window.addEventListener("appinstalled", () => { PWA.prompt = null; renderPwa(); });
+
 export function renderPwa() {
   const tr = T();
   $("#foot").textContent = tr.foot + " · v" + VERSION;
@@ -38,9 +42,6 @@ export async function initPwa() {
       if (all[VERSION]) { PWA.news = all[VERSION]; renderPwa(); }
     }
   } catch (e) {}
-
-  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); PWA.prompt = e; renderPwa(); });
-  window.addEventListener("appinstalled", () => { PWA.prompt = null; renderPwa(); });
 
   if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) return;
   let reloading = false;
