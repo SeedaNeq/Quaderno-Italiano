@@ -1,4 +1,18 @@
 {
+ "1.5.0": {
+  "pl": [
+   "Przykładowe zdania z tłumaczeniem dla wszystkich słów B1",
+   "Zdania mają teraz wszystkie słowa od A1 do B1"
+  ],
+  "en": [
+   "Example sentences with translations for all B1 words",
+   "All words from A1 to B1 now have example sentences"
+  ],
+  "it": [
+   "Frasi d'esempio con traduzione per tutte le parole B1",
+   "Ora tutte le parole da A1 a B1 hanno frasi d'esempio"
+  ]
+ },
  "1.4.0": {
   "pl": [
    "Poziomy można łączyć – włącz np. A1 i B2 naraz",

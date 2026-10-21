@@ -74,11 +74,11 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 4. `git add -A && git commit -m "opis zmiany" && git push` – Netlify sam opublikuje (gdy repo jest połączone z Netlify).
 
 ## Stan (2026-10-21)
-- Wersja **1.4.0**: 3568 słów (A1 400, A2 707, B1 1135, B2 1326), w tym liczebniki w A1. Przykładowe zdania: A1 i A2 gotowe. Wszystkie słowa mają tematy (12). Poziomy łączone dowolnie; filtry części mowy i tematu z wielokrotnym wyborem. Tryby: Fiszki, Quiz, Pisanie, Lista. Kierunki IT↔PL, IT↔EN. Interfejs PL/EN/IT. PWA: instalacja, offline, pasek aktualizacji.
+- Wersja **1.5.0**: 3568 słów (A1 400, A2 707, B1 1135, B2 1326), w tym liczebniki w A1. Przykładowe zdania: A1, A2 i B1 gotowe (2242 słowa). Wszystkie słowa mają tematy (12). Poziomy łączone dowolnie; filtry części mowy i tematu z wielokrotnym wyborem. Tryby: Fiszki, Quiz, Pisanie, Lista. Kierunki IT↔PL, IT↔EN. Interfejs PL/EN/IT. PWA: instalacja, offline, pasek aktualizacji.
 - Kod podzielony na moduły; dane wyniesione do `data/words.json`; Excel jest źródłem.
 
 ## Do zrobienia
-1. **Przykładowe zdania** – A1 i A2 gotowe; dalej B1 (1135), B2 (1326).
+1. **Przykładowe zdania** – A1, A2 i B1 gotowe; zostało B2 (1326).
 2. **Pisanie – uzupełnianie zdań** (IT→PL, IT→EN): zdanie po włosku z luką, podpowiedź PL/EN. Do decyzji: czy wymagać formy odmienionej, czy pokazywać formę podstawową.
 3. **Odmiana czasowników**: wybór poziomu i czasu, losowana osoba. Tabele odmiany w osobnym arkuszu Excela; czasy przypisane do poziomów.
 4. **Gramatyka**: zagadnienia od A1, teoria + ćwiczenia; zacząć od 5–6 tematów A1.
