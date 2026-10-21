@@ -7,6 +7,7 @@ const DIRS = ["it-pl", "pl-it", "it-en", "en-it"];
 export const S = {
   lvls: [], mode: "cards", dir: "it-pl", ui: "pl", itVoice: "", pos: [], topics: [],
   my: false,                                          // true = working on the own word set instead of the levels
+  fold: true,                                         // phones: levels/filters/direction folded behind the summary button
   boxes: {},
   dd: null,                                           // open filter drop-down: "pos" | "topics" | null
   myPage: false, myErr: null, myDel: false,           // own set page: shown, upload errors, delete confirmation
@@ -35,6 +36,7 @@ export function loadState(levels) {
     S.pos = typeof d.pos === "number" ? (d.pos >= 0 ? [d.pos] : []) : nums(d.pos);   // before 1.4.0: one number, -1 = all
     S.topics = nums(d.topics);
     S.my = d.my === true;
+    if (typeof d.fold === "boolean") S.fold = d.fold;
     if (d.boxes) S.boxes = d.boxes;
   } catch (e) {}
 }
@@ -42,7 +44,7 @@ export function loadState(levels) {
 export function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify({
-      lvls: S.lvls, mode: S.mode, dir: S.dir, ui: S.ui, itVoice: S.itVoice, pos: S.pos, topics: S.topics, my: S.my, boxes: S.boxes,
+      lvls: S.lvls, mode: S.mode, dir: S.dir, ui: S.ui, itVoice: S.itVoice, pos: S.pos, topics: S.topics, my: S.my, fold: S.fold, boxes: S.boxes,
     }));
   } catch (e) {}
 }

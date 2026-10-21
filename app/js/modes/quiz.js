@@ -53,7 +53,7 @@ export function render() {
     return `<button class="opt ${c}" data-opt="${esc(o.id)}" ${done ? "disabled" : ""}><kbd>${k + 1}</kbd><span>${fromIt ? esc(o[lq]) : itHTML(o.it)}</span></button>`;
   }).join("");
   $("#view").innerHTML = `<section class="page"><div class="meta"><span>${tr.qOf(Q.i + 1, Q.qs.length)}</span><span>${tr.right}: ${Q.qs.slice(0, Q.i + (done ? 1 : 0)).filter(x => x.pick === x.w.id).length}</span></div>
-    <div class="prompt" style="cursor:default;min-height:150px"><div class="tagrow">${tagHTML(q.w)}</div>
+    <div class="prompt short"><div class="tagrow">${tagHTML(q.w)}</div>
       ${fromIt ? `<div class="word">${itHTML(q.w.it)}</div>` : `<div class="word pl">${esc(q.w[lq])}</div>`}
       ${done ? exampleHTML(q.w, lq) : ""}</div>
     <div class="opts">${opts}</div>

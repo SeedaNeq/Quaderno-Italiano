@@ -63,6 +63,17 @@ header.top{display:flex;flex-direction:column;gap:18px}
 .errbox ul{margin:6px 0 0;padding-left:20px}
 .errbox p{margin:6px 0 0}
 
+/* scope = levels + filters + direction; on phones folded behind .scopebtn */
+.scope{display:flex;flex-direction:column;gap:14px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filters .pos{display:contents}
+.scopebtn{display:none;width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;gap:8px;align-items:baseline;text-align:left;color:var(--ink)}
+.scopebtn .ddlbl{font-family:var(--f-mono);font-size:.7rem;color:var(--muted);flex:none}
+.scopebtn b{flex:1;min-width:0;font-weight:500;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scopebtn .caret{font-size:.75rem;color:var(--muted);transition:transform .15s}
+.scopebtn[aria-expanded="true"]{border-color:var(--accent)}
+.scopebtn[aria-expanded="true"] .caret{transform:rotate(180deg)}
+
 .modes{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:12px}
 .tabs{display:flex;gap:4px;flex-wrap:wrap}
 .tab{background:none;border:0;padding:8px 12px;border-radius:8px;font-weight:500;color:var(--muted)}
@@ -101,6 +112,7 @@ header.top{display:flex;flex-direction:column;gap:18px}
 .dots .off{color:var(--line)}
 
 .prompt{min-height:210px;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:26px 0 18px;cursor:pointer;border-radius:6px}
+.prompt.short{min-height:150px;cursor:default}
 .word{font-family:var(--f-display);font-weight:500;font-size:clamp(2rem,7.5vw,3.3rem);line-height:1.1;overflow-wrap:anywhere;text-wrap:balance}
 .word.pl{font-family:var(--f-body);font-weight:500;font-size:clamp(1.7rem,6vw,2.5rem)}
 .art{color:var(--muted);font-style:italic}
@@ -181,6 +193,19 @@ td .dots{font-size:.8rem;white-space:nowrap}
 .foot{font-size:.82rem;color:var(--muted);text-align:center;margin:0}
 
 @media (max-width:560px){
+  /* compact top: small title, scope folded, tabs on one line – more room for the card and the keyboard */
+  .wrap{padding-block:12px 40px;gap:12px}
+  header.top{gap:10px}
+  .brand h1{font-size:1.6rem;white-space:nowrap}
+  .brandrow{align-items:center}
+  .brand p{display:none}
+  .scopebtn{display:flex}
+  .scope[data-fold="true"]{display:none}
+  .modes{padding-bottom:6px}
+  .tabs{flex-wrap:nowrap;overflow-x:auto;gap:2px;width:100%;scrollbar-width:none}
+  .tab{padding:7px 9px;white-space:nowrap;font-size:.95rem}
+  .prompt{min-height:150px;padding:16px 0 12px}
+  .prompt.short{min-height:0;padding:12px 0 8px}
   .page{padding:20px 14px 18px 32px}
   .page::before{left:19px}
   .opts{grid-template-columns:1fr}

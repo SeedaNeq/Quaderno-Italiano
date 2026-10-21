@@ -42,4 +42,15 @@ export function exampleHTML(w, lang) {
 // Selected levels for headings: "B1", "A1 + B2", "All levels" or the own set
 export const lvlLabel = () => (S.my ? T().mySet : S.lvls.length > 1 && S.lvls.length === LEVELS.length ? T().allLvl : S.lvls.join(" + "));
 
+// Phones: when the on-screen keyboard is open over the Writing answer box, scroll the header away
+// so the word, the input and the buttons stay visible together. Keyboard = visible area much shorter than the tallest seen.
+const phone = matchMedia("(max-width:560px)");
+let fullH = 0;
+export function fitWriting() {
+  const h = window.visualViewport ? visualViewport.height : innerHeight;
+  fullH = Math.max(fullH, h);
+  const a = document.activeElement;
+  if (phone.matches && h < fullH * 0.8 && a && a.id === "wIn") $("#view").scrollIntoView({ block: "start" });
+}
+
 export const empty = () => `<section class="page"><p class="hint" style="margin:0">${T().empty}</p></section>`;

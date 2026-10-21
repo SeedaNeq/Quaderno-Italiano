@@ -8,7 +8,7 @@
 import { S, app, box, bump } from "../state.js";
 import { T } from "../i18n.js";
 import { pool, pickNext, SRC, TGT, L, OTHER, LBL } from "../data.js";
-import { $, esc, itHTML, dots, tagHTML, empty, SPK } from "../ui.js";
+import { $, esc, itHTML, dots, tagHTML, empty, fitWriting, SPK } from "../ui.js";
 import { speak, mini, canSpeak } from "../speech.js";
 
 const nrm = s => String(s).replace(/[’‘`´]/g, "'").replace(/\s+/g, " ").trim().toLowerCase();
@@ -53,7 +53,7 @@ export function render() {
   const ph = tr.wPlaceholder(tg.toUpperCase());
   $("#view").innerHTML = `<section class="page">
     <div class="meta"><span>${b === undefined ? tr.newWord : tr.box + " " + b + " " + dots(b)}</span><span>${tr.today}: ${S.session}</span></div>
-    <div class="prompt" style="cursor:default;min-height:150px"><div class="tagrow">${tagHTML(w)}</div>${front}</div>
+    <div class="prompt short"><div class="tagrow">${tagHTML(w)}</div>${front}</div>
     <div class="writebox">
       <div class="inrow"><input id="wIn" class="answerIn ${r ? (r.ok ? "ok" : "bad") : ""}" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
         lang="${tg}" placeholder="${ph}" value="${esc(S.typed)}" ${r ? "readonly" : ""} aria-label="${ph}">
@@ -67,7 +67,7 @@ export function render() {
       <button class="btn good ${r && r.ok ? "suggest" : ""}" id="got" ${r ? "" : "disabled"}>${tr.got}</button>
     </div></section>`;
   const inp = $("#wIn");
-  if (inp) { try { inp.focus({ preventScroll: true }); inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {} }
+  if (inp) { try { inp.focus({ preventScroll: true }); inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {} fitWriting(); }
 }
 
 export function check() {

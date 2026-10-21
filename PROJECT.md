@@ -68,6 +68,7 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 - **Tematy (12):** Człowiek i rodzina (dane osobowe, ciało, charakter, uczucia, rodzina; też ubrania i narodowości) · Dom i otoczenie (też miasto) · Praca i edukacja · Zakupy i żywienie (też pieniądze) · Podróże i transport · Zdrowie · Czas i przyroda · Kultura, rozrywka i sport · Społeczeństwo i prawo (polityka, prawo, przestępstwa, religia) · Technologia (urządzenia, internet, wiadomości – kanały komunikacji) · Opinie i dyskusja (mówienie, wyrażanie i uzasadnianie zdania, zgoda/sprzeciw, łączniki argumentacji) · Inne (reszta: słowa ogólne i abstrakcyjne, słowa funkcyjne, liczebniki). Słowo ma 1–2 tematy.
 - **Liczebniki:** część mowy `numeral` (liczebnik, indeks 8 – dopisana na końcu `POS_KEYS`). A1: 1–20, 30–90, 100, 1000; milion to rzeczownik „il milione” (przeniesiony z A2 do A1).
 - **Własny zestaw:** jeden na przeglądarkę, kafelek obok poziomów („+” gdy brak, „Mój” gdy jest; kliknięcie aktywnego otwiera stronę zestawu). Działa osobno od poziomów (`S.my`). Słowa w localStorage `quaderno-italiano.myset`, postęp w `S.boxes` z prefiksem id `+|`. Szablon .xlsx generowany w przeglądarce w języku interfejsu (arkusz słów z listami rozwijanymi + arkusz z instrukcją). Kolumny rozpoznawane po nagłówkach PL/EN/IT, kolejność dowolna. Kierunki tylko dla języków z zestawu; filtr tematów ukryty. Plik z błędami nie jest zapisywany – lista błędów z numerami wierszy. Podmiana zestawu zachowuje postęp słów, które w nim zostały.
+- **Telefon (≤560 px):** poziomy, filtry, kierunek i głos są w panelu `#scope`, zwiniętym pod przyciskiem „Zakres” z podsumowaniem (`S.fold`, zapisywane; domyślnie zwinięte). Na komputerze panel zawsze rozwinięty, przycisku nie ma. Tytuł w jednej linii, bez podtytułu, zakładki trybów w jednym rzędzie. W Pisaniu przy otwartej klawiaturze ekranowej strona przewija się do karty (`fitWriting` w `ui.js`).
 - **Interfejs** w trzech językach (PL/EN/IT); nowy tekst dodajemy do wszystkich trzech bloków w `i18n.js`.
 
 ## Jak wydać nową wersję
@@ -85,9 +86,10 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 - **1.5.0** – zdania B1 (1135).
 - **1.6.0** – zdania B2 (1326). Od tej wersji wszystkie 3568 słów ma przykładowe zdania.
 - **1.7.0** – własny zestaw słów (kafelek „+”, szablon .xlsx, wgrywanie .xlsx/.csv, walidacja, tylko wpisane języki).
+- **1.7.1** – telefon: zwijany panel „Zakres” (poziomy, filtry, kierunek), kompaktowy nagłówek, Pisanie mieści się nad klawiaturą. Kierunek i głos przeniesione do wiersza filtrów (też na komputerze).
 
 ## Stan (2026-10-21)
-- Wersja **1.7.0**: własny zestaw słów (jeden, z pliku .xlsx/.csv). 3568 słów (A1 400, A2 707, B1 1135, B2 1326), w tym liczebniki w A1. Wszystkie słowa mają przykładowe zdanie z tłumaczeniem PL i EN. Wszystkie słowa mają tematy (12). Poziomy łączone dowolnie; filtry części mowy i tematu z wielokrotnym wyborem. Tryby: Fiszki, Quiz, Pisanie, Lista. Kierunki IT↔PL, IT↔EN. Interfejs PL/EN/IT. PWA: instalacja, offline, pasek aktualizacji.
+- Wersja **1.7.1**: zwijany panel „Zakres” na telefonie. Własny zestaw słów (jeden, z pliku .xlsx/.csv). 3568 słów (A1 400, A2 707, B1 1135, B2 1326), w tym liczebniki w A1. Wszystkie słowa mają przykładowe zdanie z tłumaczeniem PL i EN. Wszystkie słowa mają tematy (12). Poziomy łączone dowolnie; filtry części mowy i tematu z wielokrotnym wyborem. Tryby: Fiszki, Quiz, Pisanie, Lista. Kierunki IT↔PL, IT↔EN. Interfejs PL/EN/IT. PWA: instalacja, offline, pasek aktualizacji.
 - Kod podzielony na moduły; dane wyniesione do `data/words.json`; Excel jest źródłem.
 
 ## Do zrobienia
@@ -96,5 +98,5 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 3. **Odmiana czasowników**: wybór poziomu i czasu, losowana osoba. Tabele odmiany w osobnym arkuszu Excela; czasy przypisane do poziomów.
 4. **Gramatyka**: zagadnienia od A1, teoria + ćwiczenia; zacząć od 5–6 tematów A1.
 5. **Słownictwo C1 i C2** – później.
-6. **Własny zestaw słów** – zrobione w 1.7.0. Do sprawdzenia przez Wojtka: otwarcie szablonu w prawdziwym Excelu / Google Sheets / Numbers i wgranie pliku na iPhonie. Możliwe rozszerzenia: kilka zestawów, opcjonalne kolumny ze zdaniami przykładowymi.
+6. **Własny zestaw słów** – zrobione w 1.7.0. Szablon sprawdzony w Excelu (OK). Do sprawdzenia: Google Sheets / Numbers i wgranie pliku na iPhonie. Możliwe rozszerzenia: kilka zestawów, opcjonalne kolumny ze zdaniami przykładowymi.
 7. Opcjonalnie: wspólny postęp na wielu urządzeniach (wymaga logowania, np. Firebase/Supabase); nagrane pliki wymowy.

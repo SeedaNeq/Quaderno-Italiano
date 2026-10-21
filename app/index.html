@@ -25,7 +25,16 @@
       <h1>Quaderno <em>Italiano</em></h1>
       <p id="sub"></p>
     </div><div class="toprt"><button id="installBtn" class="pill" type="button" hidden></button><select id="uiSel" aria-label="Język interfejsu / Interface language"><option value="pl">Polski</option><option value="en">English</option><option value="it">Italiano</option></select></div></div>
-    <div class="levels" role="group" aria-label="Poziom" id="levels"></div>
+    <!-- Phones: levels, filters and direction fold behind one summary button (S.fold) -->
+    <button class="scopebtn" id="scopeBtn" type="button" aria-controls="scope"><span class="ddlbl" id="scopeLbl"></span><b id="scopeSum"></b><span class="caret" aria-hidden="true">▾</span></button>
+    <div class="scope" id="scope">
+      <div class="levels" role="group" aria-label="Poziom" id="levels"></div>
+      <div class="filters">
+        <div class="pos" id="pos" aria-label="Część mowy"></div>
+        <label class="dir" for="dirSel"><span id="dirLbl"></span> <select id="dirSel"><option value="it-pl">IT → PL</option><option value="pl-it">PL → IT</option><option value="it-en">IT → EN</option><option value="en-it">EN → IT</option></select></label>
+        <label class="dir" for="voiceSel" id="voiceWrap" hidden><span id="voiceLbl"></span> <select id="voiceSel"></select></label>
+      </div>
+    </div>
   </header>
 
   <nav class="modes">
@@ -35,10 +44,7 @@
       <button class="tab" data-mode="write" role="tab" id="tabWrite"></button>
       <button class="tab" data-mode="list" role="tab" id="tabList"></button>
     </div>
-    <label class="dir" for="dirSel"><span id="dirLbl"></span> <select id="dirSel"><option value="it-pl">IT → PL</option><option value="pl-it">PL → IT</option><option value="it-en">IT → EN</option><option value="en-it">EN → IT</option></select></label>
-    <label class="dir" for="voiceSel" id="voiceWrap" hidden><span id="voiceLbl"></span> <select id="voiceSel"></select></label>
   </nav>
-  <div class="pos" id="pos" aria-label="Część mowy"></div>
 
   <section class="news" id="newsBox" hidden><h2></h2><ul></ul><button class="btn" id="newsClose" type="button"></button></section>
   <main id="view"></main>

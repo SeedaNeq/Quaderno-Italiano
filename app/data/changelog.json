@@ -1,4 +1,18 @@
 {
+ "1.7.1": {
+  "pl": [
+   "Na telefonie poziomy, filtry i kierunek chowają się pod jednym przyciskiem „Zakres” – więcej miejsca na naukę",
+   "W Pisaniu słowo, pole odpowiedzi i przyciski mieszczą się nad klawiaturą ekranową"
+  ],
+  "en": [
+   "On phones, levels, filters and direction fold under one “Scope” button – more room for learning",
+   "In Writing, the word, the answer box and the buttons fit above the on-screen keyboard"
+  ],
+  "it": [
+   "Sul telefono livelli, filtri e direzione si chiudono sotto un unico pulsante “Selezione” – più spazio per studiare",
+   "Nella Scrittura parola, risposta e pulsanti restano visibili sopra la tastiera"
+  ]
+ },
  "1.7.0": {
   "pl": [
    "Własny zestaw słów: kafelek „+” obok poziomów",

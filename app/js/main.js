@@ -2,7 +2,7 @@
 import { S, app, save, box, loadState } from "./state.js";
 import { T } from "./i18n.js";
 import { WORDS, LEVELS, POS, TOPICS, MY, topicName, loadWords, filtered, hasTopics, hasLang, fixDir, pool } from "./data.js";
-import { $, esc } from "./ui.js";
+import { $, esc, lvlLabel, fitWriting } from "./ui.js";
 import { speak, renderVoice, initSpeech } from "./speech.js";
 import { renderPwa, initPwa, install, applyUpdate, closeNews } from "./pwa.js";
 import * as cards from "./modes/cards.js";
@@ -36,6 +36,14 @@ function renderTop() {
   $("#levels").innerHTML = LEVELS.map(c => tile(`data-lvl="${esc(c)}" aria-pressed="${!S.my && S.lvls.includes(c)}"`, c, tr.lvl[c] || "", WORDS.filter(w => w.lvl === c))).join("")
     + (MY.words.length ? tile(`data-my="on" aria-pressed="${S.my}" title="${esc(MY.name)}"`, tr.myCode, MY.name, MY.words)
       : `<button class="lvl add" data-my="page" aria-pressed="${S.myPage}"><span class="code" aria-hidden="true">+</span><span class="name">${tr.mySet}</span><span class="count">${tr.myAdd}</span></button>`);
+
+  // Phones: one-line summary of the folded scope, e.g. "A1 + A2 · IT → PL · czasownik"
+  const pick = (sel, name) => (!sel.length ? "" : sel.length === 1 ? name(sel[0]) : tr.nSel(sel.length));
+  $("#scopeLbl").textContent = tr.scope;
+  $("#scopeSum").textContent = [lvlLabel(), S.dir.toUpperCase().replace("-", " → "), pick(S.pos, i => POS[i][tr.posIdx]),
+    hasTopics() ? pick(S.topics, i => topicName(i, tr.posIdx)) : ""].filter(Boolean).join(" · ");
+  $("#scopeBtn").setAttribute("aria-expanded", !S.fold);
+  $("#scope").dataset.fold = S.fold;
 
   // Counts in each drop-down respect the other filter, e.g. "verbs" under the topic Food
   const byPos = filtered("pos"), byTopic = filtered("topics");
@@ -113,6 +121,7 @@ document.addEventListener("click", e => {
     case "installBtn": install(); break;
     case "updBtn": applyUpdate(); break;
     case "newsClose": closeNews(); break;
+    case "scopeBtn": S.fold = !S.fold; save(); render(); break;
     case "myTpl": myset.downloadTemplate(); break;
     case "myPick": $("#myFile").click(); break;
     case "myUse": S.myPage = false; myset.use(); break;
@@ -146,6 +155,9 @@ document.addEventListener("keydown", e => {
   if (S.mode === "cards") cards.onKey(e);
   else if (S.mode === "quiz") quiz.onKey(e);
 });
+
+fitWriting();
+(window.visualViewport || window).addEventListener("resize", fitWriting);
 
 (async function start() {
   try { await loadWords(); }
