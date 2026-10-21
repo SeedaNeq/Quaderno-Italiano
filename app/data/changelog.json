@@ -1,0 +1,53 @@
+{
+ "1.1.1": {
+  "pl": [
+   "Nowa, uporządkowana budowa aplikacji – szybsze i pewniejsze aktualizacje",
+   "Twój postęp nauki zostaje bez zmian"
+  ],
+  "en": [
+   "Rebuilt app structure – faster and more reliable updates",
+   "Your learning progress stays the same"
+  ],
+  "it": [
+   "Nuova struttura dell'app – aggiornamenti più rapidi e affidabili",
+   "I tuoi progressi restano invariati"
+  ]
+ },
+ "1.1.0": {
+  "pl": [
+   "Prawie 1500 nowych słów i zwrotów, głównie na poziomie B2",
+   "Nowe tematy: prawo, gospodarka, środowisko, media, zdrowie, emocje, kultura",
+   "Spójniki i wyrażenia typu affinché, a patto che, in base a"
+  ],
+  "en": [
+   "Almost 1,500 new words and phrases, mostly at B2 level",
+   "New topics: law, economy, environment, media, health, emotions, culture",
+   "Conjunctions and phrases such as affinché, a patto che, in base a"
+  ],
+  "it": [
+   "Quasi 1.500 nuove parole ed espressioni, soprattutto di livello B2",
+   "Nuovi temi: diritto, economia, ambiente, media, salute, emozioni, cultura",
+   "Congiunzioni ed espressioni come affinché, a patto che, in base a"
+  ]
+ },
+ "1.0.0": {
+  "pl": [
+   "Pierwsza wersja aplikacji do instalacji",
+   "Fiszki, quiz, pisanie i lista słów",
+   "Interfejs po polsku, angielsku i włosku",
+   "Działa bez internetu"
+  ],
+  "en": [
+   "First installable version",
+   "Flashcards, quiz, writing and word list",
+   "Interface in Polish, English and Italian",
+   "Works offline"
+  ],
+  "it": [
+   "Prima versione installabile",
+   "Flashcard, quiz, scrittura ed elenco parole",
+   "Interfaccia in polacco, inglese e italiano",
+   "Funziona offline"
+  ]
+ }
+}

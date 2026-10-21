@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Quaderno Italiano</title>
+<meta name="description" content="Nauka włoskiego słownictwa A1–B2: fiszki, quiz, pisanie i lista słów.">
+<meta name="theme-color" content="#2148c9">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,500&family=Karla:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<script src="version.js"></script>
+<script type="module" src="js/main.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brandrow"><div class="brand">
+      <h1>Quaderno <em>Italiano</em></h1>
+      <p id="sub"></p>
+    </div><div class="toprt"><button id="installBtn" class="pill" type="button" hidden></button><select id="uiSel" aria-label="Język interfejsu / Interface language"><option value="pl">Polski</option><option value="en">English</option><option value="it">Italiano</option></select></div></div>
+    <div class="levels" role="tablist" aria-label="Poziom" id="levels"></div>
+  </header>
+
+  <nav class="modes">
+    <div class="tabs" role="tablist" aria-label="Tryb" id="modes">
+      <button class="tab" data-mode="cards" role="tab" id="tabCards"></button>
+      <button class="tab" data-mode="quiz" role="tab" id="tabQuiz"></button>
+      <button class="tab" data-mode="write" role="tab" id="tabWrite"></button>
+      <button class="tab" data-mode="list" role="tab" id="tabList"></button>
+    </div>
+    <label class="dir" for="dirSel"><span id="dirLbl"></span> <select id="dirSel"><option value="it-pl">IT → PL</option><option value="pl-it">PL → IT</option><option value="it-en">IT → EN</option><option value="en-it">EN → IT</option></select></label>
+    <label class="dir" for="voiceSel" id="voiceWrap" hidden><span id="voiceLbl"></span> <select id="voiceSel"></select></label>
+  </nav>
+  <div class="pos" id="pos" aria-label="Część mowy"></div>
+
+  <section class="news" id="newsBox" hidden><h2></h2><ul></ul><button class="btn" id="newsClose" type="button"></button></section>
+  <main id="view"></main>
+  <p class="warn" id="voiceWarn" hidden></p>
+  <p class="foot" id="foot"></p>
+  <div class="updbar" id="updBar" role="status" hidden><span id="updTxt"></span><button class="btn primary" id="updBtn" type="button"></button></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,13 @@
+# Netlify publishes only the app/ folder. Nothing to build.
+[build]
+  publish = "app"
+
+# Always check for a fresh service worker and version file
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/version.js"
+  [headers.values]
+    Cache-Control = "no-cache"
