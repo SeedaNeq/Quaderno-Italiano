@@ -4,6 +4,7 @@ import { T } from "../i18n.js";
 import { pool, inLevel, hasLang } from "../data.js";
 import { $, esc, itHTML, dots, tagHTML, lvlLabel, SPK } from "../ui.js";
 import { mini, canSpeak } from "../speech.js";
+import { verbLink, allTensesHTML } from "../verbs.js";
 
 export function render() {
   const ws = pool(), term = S.q.trim().toLowerCase(), tr = T();
@@ -12,7 +13,9 @@ export function render() {
   const shown = rows.slice(0, S.limit);
   const hadFocus = document.activeElement && document.activeElement.id === "q";
   const pl = hasLang("pl"), en = hasLang("en"), enCls = pl ? "col-en" : "";       // own set may lack one language; never hide the only one
-  const body = shown.map(w => `<tr><td class="it">${itHTML(w.it)}</td>${pl ? `<td>${esc(w.pl)} ${mini(w.pl, "pl")}</td>` : ""}${en ? `<td class="en ${enCls}">${esc(w.en)} ${mini(w.en, "en")}</td>` : ""}<td>${tagHTML(w)}</td><td>${dots(box(w))}</td>${canSpeak ? `<td><button class="sp" data-say="${esc(w.it)}" aria-label="${tr.say}: ${esc(w.it)}">${SPK}</button></td>` : ""}</tr>`).join("")
+  // A verb's Italian word opens its full conjugation in an extra row below
+  const body = shown.map(w => `<tr><td class="it">${verbLink(w, itHTML(w.it), S.vopen === w.it)}</td>${pl ? `<td>${esc(w.pl)} ${mini(w.pl, "pl")}</td>` : ""}${en ? `<td class="en ${enCls}">${esc(w.en)} ${mini(w.en, "en")}</td>` : ""}<td>${tagHTML(w)}</td><td>${dots(box(w))}</td>${canSpeak ? `<td><button class="sp" data-say="${esc(w.it)}" aria-label="${tr.say}: ${esc(w.it)}">${SPK}</button></td>` : ""}</tr>`
+    + (S.vopen === w.it && w.p === 1 ? `<tr class="conjrow"><td colspan="6">${allTensesHTML(w.it)}</td></tr>` : "")).join("")
     || `<tr><td colspan="6" class="hint">${tr.none(esc(S.q))}</td></tr>`;
   $("#view").innerHTML = `<section class="page stack">
     <div class="meta"><span>${esc(lvlLabel())} · ${ws.length} ${tr.words}</span><span>${tr.stats(learned, seen - learned, ws.length - seen)}</span></div>

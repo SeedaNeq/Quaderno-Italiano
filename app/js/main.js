@@ -1,17 +1,19 @@
 // Entry point: loads words, draws the shared top bar, routes clicks/keys to the active mode.
 import { S, app, save, box, loadState } from "./state.js";
 import { T } from "./i18n.js";
-import { WORDS, LEVELS, POS, TOPICS, MY, topicName, loadWords, filtered, hasTopics, hasLang, fixDir, pool } from "./data.js";
-import { $, esc, lvlLabel, fitWriting } from "./ui.js";
+import { WORDS, LEVELS, POS, TOPICS, MY, topicName, loadWords, filtered, inLevel, L, hasTopics, hasLang, fixDir, pool } from "./data.js";
+import { $, esc, lvlLabel, fitWriting, dropdown, insertChar } from "./ui.js";
 import { speak, renderVoice, initSpeech } from "./speech.js";
 import { renderPwa, initPwa, install, applyUpdate, closeNews } from "./pwa.js";
+import { loadVerbs } from "./verbs.js";
 import * as cards from "./modes/cards.js";
 import * as quiz from "./modes/quiz.js";
 import * as write from "./modes/write.js";
+import * as conj from "./modes/conj.js";
 import * as list from "./modes/list.js";
 import * as myset from "./myset.js";
 
-const MODES = { cards, quiz, write, list };
+const MODES = { cards, quiz, write, conj, list };
 
 function renderTop() {
   const tr = T();
@@ -19,7 +21,7 @@ function renderTop() {
   $("#sub").textContent = tr.sub(WORDS.length, LEVELS.join(" · "));
   $("#uiSel").value = S.ui;
   $("#tabCards").textContent = tr.cards; $("#tabQuiz").textContent = tr.quiz;
-  $("#tabWrite").textContent = tr.write; $("#tabList").textContent = tr.list;
+  $("#tabWrite").textContent = tr.write; $("#tabConj").textContent = tr.conj; $("#tabList").textContent = tr.list;
   $("#dirLbl").textContent = tr.dir;
   for (const o of $("#dirSel").options) o.disabled = o.hidden = !hasLang(o.value.includes("en") ? "en" : "pl");   // own set: only its languages
   $("#dirSel").value = S.dir;
@@ -39,34 +41,22 @@ function renderTop() {
 
   // Phones: one-line summary of the folded scope, e.g. "A1 + A2 · IT → PL · czasownik"
   const pick = (sel, name) => (!sel.length ? "" : sel.length === 1 ? name(sel[0]) : tr.nSel(sel.length));
+  const verbsOnly = S.mode === "conj" && !S.myPage;                       // Conjugation: part of speech is always "verb"
   $("#scopeLbl").textContent = tr.scope;
-  $("#scopeSum").textContent = [lvlLabel(), S.dir.toUpperCase().replace("-", " → "), pick(S.pos, i => POS[i][tr.posIdx]),
+  $("#scopeSum").textContent = [lvlLabel(), S.dir.toUpperCase().replace("-", " → "), verbsOnly ? "" : pick(S.pos, i => POS[i][tr.posIdx]),
     hasTopics() ? pick(S.topics, i => topicName(i, tr.posIdx)) : ""].filter(Boolean).join(" · ");
   $("#scopeBtn").setAttribute("aria-expanded", !S.fold);
   $("#scope").dataset.fold = S.fold;
 
   // Counts in each drop-down respect the other filter, e.g. "verbs" under the topic Food
-  const byPos = filtered("pos"), byTopic = filtered("topics");
-  $("#pos").innerHTML = dropdown("pos", tr.pos, byPos.length, POS.map((p, i) => ({ i, name: p[tr.posIdx], n: byPos.filter(w => w.p === i).length })))
+  const byPos = filtered("pos"), byTopic = verbsOnly ? inLevel().filter(w => w.p === 1 && w[L()]) : filtered("topics");
+  $("#pos").innerHTML = (verbsOnly ? "" : dropdown("pos", tr.pos, byPos.length, POS.map((p, i) => ({ i, name: p[tr.posIdx], n: byPos.filter(w => w.p === i).length }))))
     + (hasTopics() ? dropdown("topics", tr.topic, byTopic.length, TOPICS.map((_, i) => ({ i, name: topicName(i, tr.posIdx), n: byTopic.filter(w => w.t.includes(i)).length }))) : "");
-}
-
-// Multi-select filter: a button showing the selection and, when open, a list of check boxes
-function dropdown(kind, label, total, opts) {
-  const tr = T(), sel = S[kind], open = S.dd === kind;
-  const one = sel.length === 1 && opts.find(o => o.i === sel[0]);
-  const summary = !sel.length ? tr.all : one ? one.name : tr.nSel(sel.length);
-  const opt = (i, name, n, on) => `<button class="ddopt" data-f="${kind}" data-i="${i}" role="checkbox" aria-checked="${on}" ${!n && !on ? "disabled" : ""}>
-    <span class="ck" aria-hidden="true"></span><span class="nm">${esc(name)}</span><small>${n}</small></button>`;
-  return `<div class="dd${open ? " open" : ""}">
-    <button class="ddbtn" data-dd="${kind}" aria-expanded="${open}"><span class="ddlbl">${esc(label)}</span><b>${esc(summary)}</b><span class="caret" aria-hidden="true">▾</span></button>
-    ${open ? `<div class="ddmenu" role="group" aria-label="${esc(label)}">${opt(-1, tr.all, total, !sel.length)}${opts.map(o => opt(o.i, o.name, o.n, sel.includes(o.i))).join("")}</div>` : ""}
-  </div>`;
 }
 
 function toggleFilter(kind, i) {
   S[kind] = i < 0 ? [] : S[kind].includes(i) ? S[kind].filter(x => x !== i) : [...S[kind], i].sort((a, b) => a - b);
-  S.cur = null; S.limit = 200; save(); render();
+  S.cur = null; S.cj = null; S.limit = 200; save(); render();
   const el = document.querySelector(`[data-f="${kind}"][data-i="${i}"]`); if (el) el.focus();
 }
 
@@ -97,14 +87,17 @@ document.addEventListener("click", e => {
       if (on && S.lvls.length === 1) { render(); return; }               // keep at least one level
       S.lvls = on ? S.lvls.filter(l => l !== d.lvl) : LEVELS.filter(l => l === d.lvl || S.lvls.includes(l));
     }
-    S.cur = null; S.confirm = false; S.limit = 200; if (!pool().length) { S.pos = []; S.topics = []; }
+    S.cur = null; S.cj = null; S.confirm = false; S.limit = 200; if (!pool().length) { S.pos = []; S.topics = []; }
     save(); render(); return;
   }
+  if (d.conj) { S.vopen = S.vopen === d.conj ? null : d.conj; render(); return; }   // verb → its conjugation (Flashcards, Writing, List)
+  if (d.vreg) { conj.setOption("vreg", d.vreg); return; }
+  if (d.cjm) { conj.setOption("cjm", d.cjm); return; }
   if (d.my === "on") { if (S.my && !S.myPage) { S.myPage = true; render(); } else { S.myPage = false; myset.use(); } return; }   // tapping the active set opens its page
   if (d.my === "page") { S.myPage = !S.myPage || !!MY.words.length; S.myErr = null; S.myDel = false; render(); return; }
-  if (d.mode) { S.mode = d.mode; S.myPage = false; S.confirm = false; save(); render(); return; }
+  if (d.mode) { S.mode = d.mode; S.myPage = false; S.confirm = false; S.vopen = null; save(); render(); return; }
   if (d.opt) { quiz.pickOpt(d.opt); return; }
-  if (d.ins) { write.insert(d.ins); return; }
+  if (d.ins) { insertChar(d.ins); return; }
   if (d.say) { speak(d.say, d.lang || "it"); return; }
   switch (t.id) {
     case "prompt": cards.reveal(); break;
@@ -112,6 +105,8 @@ document.addEventListener("click", e => {
     case "got": S.mode === "write" ? write.answer(true) : cards.answer(true); break;
     case "say": { const { w, dir } = currentWord(); if (w) { const src = dir.slice(0, 2); speak(src === "it" ? w.it : w[src], src); } break; }
     case "wCheck": write.check(); break;
+    case "cCheck": conj.check(); break;
+    case "cNext": conj.next(); break;
     case "startQuiz": quiz.newQuiz(); render(); break;
     case "next": quiz.next(); break;
     case "more": list.more(); break;
@@ -140,15 +135,20 @@ document.addEventListener("change", e => {
   else if (id === "myFile") { const f = e.target.files[0]; e.target.value = ""; if (f) myset.upload(f); }
 });
 
-// Writing: after checking, the answer box stays focused (keyboard open) but locked – typing is undone
-document.addEventListener("beforeinput", e => { if (e.target.id === "wIn" && S.wres) e.preventDefault(); });
-// Tapping a Writing button must not take focus from the answer box, or the phone keyboard closes
-document.addEventListener("mousedown", e => {
-  if (S.mode === "write" && !S.myPage && document.activeElement && document.activeElement.id === "wIn" && e.target.closest("#view button")) e.preventDefault();
+// Writing/Conjugation: after checking, the answer box stays focused (keyboard open) but locked – typing is undone
+document.addEventListener("beforeinput", e => {
+  if ((e.target.id === "wIn" && S.wres) || (/^cIn/.test(e.target.id) && S.cj && S.cj.res)) e.preventDefault();
 });
+// Tapping a button must not take focus from the answer box, or the phone keyboard closes
+document.addEventListener("mousedown", e => {
+  const a = document.activeElement;
+  if ((S.mode === "write" || S.mode === "conj") && !S.myPage && a && a.classList.contains("answerIn") && e.target.closest("#view button")) e.preventDefault();
+});
+document.addEventListener("focusin", e => { if (e.target.dataset && e.target.dataset.p !== undefined && /^cIn/.test(e.target.id)) S.cjFocus = +e.target.dataset.p; });
 
 document.addEventListener("input", e => {
   if (e.target.id === "wIn") { if (S.wres) e.target.value = S.typed; else S.typed = e.target.value; }
+  else if (/^cIn/.test(e.target.id)) conj.input(e.target);
   else if (e.target.id === "q") list.search(e.target.value);
 });
 
@@ -158,6 +158,8 @@ document.addEventListener("keydown", e => {
   const tag = e.target.tagName;
   if (S.mode === "write" && e.key === "Enter" && !e.isComposing
       && (e.target.id === "wIn" || tag !== "INPUT") && !(tag === "BUTTON" && e.target.id !== "wCheck")) { write.onEnter(e); return; }
+  if (S.mode === "conj" && e.key === "Enter" && !e.isComposing
+      && (/^cIn/.test(e.target.id) || tag !== "INPUT") && !(tag === "BUTTON" && !/^c(Check|Next)$/.test(e.target.id))) { conj.onEnter(e); return; }
   if (tag === "INPUT" || e.metaKey || e.ctrlKey || e.altKey) return;
   if (S.mode === "cards") cards.onKey(e);
   else if (S.mode === "quiz") quiz.onKey(e);
@@ -176,4 +178,5 @@ fitWriting();
   initSpeech();
   render();
   initPwa();
+  loadVerbs().then(ok => { if (ok) render(); });                          // conjugation tables: verb links, List, Conjugation
 })();

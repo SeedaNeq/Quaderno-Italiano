@@ -1,9 +1,10 @@
-"""Excel → app/data/words.json
+"""Excel → app/data/words.json + app/data/verbs.json
 
 Usage (from the project folder):
     python tools/excel_to_json.py
 
 Reads source/Wloski.xlsx, sheet "Słownik", and writes app/data/words.json.
+Sheet "Odmiana" (verb conjugation, filled by tools/conjugate.py) → app/data/verbs.json.
 Required columns (by header name): Włoski, Polski, Angielski, Type, Rodzaj, Poziom.
 Optional columns: Przykład, Przykład PL, Przykład EN (example sentence + translations),
 Temat (up to 2 topics from TOPICS, separated by ";").
@@ -19,9 +20,12 @@ try:
 except ImportError:
     sys.exit("Brak biblioteki openpyxl. Zainstaluj: pip install openpyxl")
 
+from conjugate import TENSES, PERSONS, regular_only
+
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "source" / "Wloski.xlsx"
 OUT = ROOT / "app" / "data" / "words.json"
+VERBS_OUT = ROOT / "app" / "data" / "verbs.json"
 POS = ["noun", "verb", "adjective", "adverb", "preposition", "conjunction", "pronoun", "interjection", "numeral"]
 LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 ARTICLES = ("il ", "lo ", "la ", "i ", "gli ", "le ", "l'")
@@ -102,10 +106,58 @@ def main():
         print("\n".join("  - " + p for p in problems))
         sys.exit(1)
 
+    verbs = read_verbs([w["it"] for w in words if w["pos"] == "verb"])
+
     # one word per line = readable changes in Git
     OUT.write_text("[\n" + ",\n".join(json.dumps(w, ensure_ascii=False) for w in words) + "\n]\n", encoding="utf-8")
     by_lvl = {l: sum(w["lvl"] == l for w in words) for l in LEVELS if any(w["lvl"] == l for w in words)}
     print(f"Zapisano {len(words)} słów do {OUT.relative_to(ROOT)}: " + ", ".join(f"{k} {v}" for k, v in by_lvl.items()))
+    if verbs is not None:
+        VERBS_OUT.write_text("{\n" + ",\n".join(json.dumps(v, ensure_ascii=False) + ": " + json.dumps(d, ensure_ascii=False)
+                                                for v, d in verbs.items()) + "\n}\n", encoding="utf-8")
+        irr = sum(d["irr"] for d in verbs.values())
+        print(f"Zapisano odmianę {len(verbs)} czasowników do {VERBS_OUT.relative_to(ROOT)} ({irr} nieregularnych)")
+
+
+def read_verbs(dict_verbs):
+    """Sheet "Odmiana" (see tools/conjugate.py) → {verb: {"irr": 0/1, "f": [[6 forms] per tense in TENSES order]}}.
+    A verb is irregular when any of its forms differs from the regular rules."""
+    wb = openpyxl.load_workbook(SRC, read_only=True, data_only=True)
+    if "Odmiana" not in wb.sheetnames:
+        print("uwaga: brak arkusza Odmiana – uruchom python tools/conjugate.py")
+        return None
+    rows = wb["Odmiana"].iter_rows(values_only=True)
+    head = [text(h) for h in next(rows)]
+    if head[:8] != ["Czasownik", "Czas"] + PERSONS:
+        sys.exit("Arkusz Odmiana: pierwszy wiersz musi mieć nagłówki Czasownik · Czas · " + " · ".join(PERSONS))
+    names = {name: i for i, (_, name, _) in enumerate(TENSES)}
+    out, problems = {}, []
+    for n, r in enumerate(rows, start=2):
+        r = [text(x) or "" for x in r[:8]] + [""] * (8 - len(r[:8]))
+        if not r[0]:
+            continue
+        if r[0] not in dict_verbs:
+            problems.append(f"Odmiana, wiersz {n}: czasownika „{r[0]}” nie ma w arkuszu Słownik")
+            continue
+        if r[1] not in names:
+            problems.append(f"Odmiana, wiersz {n} ({r[0]}): nieznany czas „{r[1]}”")
+            continue
+        out.setdefault(r[0], [[""] * 6 for _ in TENSES])[names[r[1]]] = r[2:8]
+    missing = [v for v in dict_verbs if v not in out]
+    if missing:
+        print(f"uwaga: {len(missing)} czasowników bez odmiany (uruchom python tools/conjugate.py): " + ", ".join(missing[:10]))
+    if problems:
+        print("Nie zapisano plików. Popraw w Excelu:")
+        print("\n".join("  - " + p for p in problems))
+        sys.exit(1)
+    verbs = {}
+    for v in sorted(out):
+        try:
+            reg = list(regular_only(v).values())
+        except KeyError:                                   # -rre verbs (porre, tradurre) have no regular pattern
+            reg = None
+        verbs[v] = {"irr": int(out[v] != reg), "f": out[v]}
+    return verbs
 
 
 if __name__ == "__main__":

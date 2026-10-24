@@ -4,14 +4,17 @@ import { T } from "../i18n.js";
 import { pool, pickNext, SRC, L, OTHER, LBL } from "../data.js";
 import { $, esc, itHTML, dots, tagHTML, empty, exampleHTML, SPK } from "../ui.js";
 import { speak, mini, canSpeak } from "../speech.js";
+import { conj, verbLink, presentBox } from "../verbs.js";
 
 export function render() {
   if (!S.cur || !pool().some(w => w.id === S.cur.id)) { S.cur = pickNext(); S.shown = false; }
   const w = S.cur, tr = T();
   if (!w) { $("#view").innerHTML = empty(); return; }
   const b = box(w), fromIt = SRC() === "it", o = OTHER();
-  const front = fromIt ? `<div class="word">${itHTML(w.it)}</div>` : `<div class="word pl">${esc(w[L()])}</div>`;
-  const back = `<div class="main ${fromIt ? "" : "it"}">${fromIt ? esc(w[L()]) : itHTML(w.it)} ${fromIt ? mini(w[L()], L()) : mini(w.it, "it")}</div>`
+  const itWord = S.shown ? verbLink(w, itHTML(w.it), S.vopen === w.it) : itHTML(w.it);   // revealed verb opens its presente
+  const front = fromIt ? `<div class="word">${itWord}</div>` : `<div class="word pl">${esc(w[L()])}</div>`;
+  const back = `<div class="main ${fromIt ? "" : "it"}">${fromIt ? esc(w[L()]) : itWord} ${fromIt ? mini(w[L()], L()) : mini(w.it, "it")}</div>`
+    + (S.vopen === w.it && conj(w.it) ? presentBox(w) : "")
     + (w[o] ? `<div class="en"><b>${LBL[o]}</b>${esc(w[o])} ${mini(w[o], o)}</div>` : "")
     + exampleHTML(w, L());
   $("#view").innerHTML = `<section class="page">
@@ -38,7 +41,7 @@ export function reveal() {
 export function answer(ok) {
   if (!S.shown) return;
   bump(S.cur, ok); S.session++; S.last = S.cur.id;
-  S.cur = pickNext(); S.shown = false;
+  S.cur = pickNext(); S.shown = false; S.vopen = null;
   app.render();
 }
 

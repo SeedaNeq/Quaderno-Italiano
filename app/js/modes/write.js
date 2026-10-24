@@ -8,8 +8,9 @@
 import { S, app, box, bump } from "../state.js";
 import { T } from "../i18n.js";
 import { pool, pickNext, SRC, TGT, L, OTHER, LBL } from "../data.js";
-import { $, esc, itHTML, dots, tagHTML, empty, fitWriting, SPK } from "../ui.js";
+import { $, esc, itHTML, dots, tagHTML, empty, fitWriting, keepInput, accentsHTML, SPK } from "../ui.js";
 import { speak, mini, canSpeak } from "../speech.js";
+import { conj, verbLink, presentBox } from "../verbs.js";
 
 const nrm = s => String(s).replace(/[’‘`´]/g, "'").replace(/\s+/g, " ").trim().toLowerCase();
 const plain = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ł/g, "l");
@@ -40,16 +41,17 @@ export function render() {
   const w = S.wcur, tr = T();
   if (!w) { $("#view").innerHTML = empty(); return; }
   const b = box(w), tg = TGT(), fromIt = SRC() === "it", o = OTHER(), r = S.wres;
-  const front = fromIt ? `<div class="word">${itHTML(w.it)}</div>` : `<div class="word pl">${esc(w[L()])}</div>`;
-  const answer = fromIt ? esc(w[tg]) : itHTML(w.it);
+  const itWord = r ? verbLink(w, itHTML(w.it), S.vopen === w.it) : itHTML(w.it);   // after checking, a verb opens its presente
+  const front = fromIt ? `<div class="word">${itWord}</div>` : `<div class="word pl">${esc(w[L()])}</div>`;
+  const answer = fromIt ? esc(w[tg]) : itWord;
   const result = r ? `<div class="result ${r.ok ? "ok" : "bad"}">
       <div class="verdict">${r.ok ? tr.wCorrect : tr.wWrong}</div>
       ${r.near ? `<div class="near">${r.near === "accent" ? tr.wAccent : tr.wArticle}</div>` : ""}
       <div class="main ${fromIt ? "" : "it"}">${answer} ${fromIt ? mini(w[tg], tg) : mini(w.it, "it")}</div>
       ${w[o] && o !== tg ? `<div class="en"><b>${LBL[o]}</b>${esc(w[o])} ${mini(w[o], o)}</div>` : ""}
+      ${S.vopen === w.it && conj(w.it) ? presentBox(w) : ""}
     </div>` : "";
-  const accents = tg === "it" && !r
-    ? `<div class="accents" aria-label="${tr.wAccents}">${["à", "è", "é", "ì", "ò", "ù", "'"].map(c => `<button class="acc" data-ins="${c}" tabindex="-1">${c}</button>`).join("")}</div>` : "";
+  const accents = tg === "it" && !r ? accentsHTML() : "";
   const ph = tr.wPlaceholder(tg.toUpperCase());
   const html = `<section class="page">
     <div class="meta"><span>${b === undefined ? tr.newWord : tr.box + " " + b + " " + dots(b)}</span><span>${tr.today}: ${S.session}</span></div>
@@ -67,29 +69,10 @@ export function render() {
       <button class="btn good ${r && r.ok ? "suggest" : ""}" id="got" ${r ? "" : "disabled"}>${tr.got}</button>
     </div></section>`;
   const old = $("#wIn");
-  if (old && document.activeElement === old) keepInput(old, html);
+  if (old && document.activeElement === old) keepInput(old, html, S.typed);
   else $("#view").innerHTML = html;
   const inp = $("#wIn");
   if (inp) { try { inp.focus({ preventScroll: true }); inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {} fitWriting(); }
-}
-
-// Redraw the page around the focused answer box instead of replacing it: the box never loses focus,
-// so on phones the on-screen keyboard stays open between answers.
-function keepInput(inp, html) {
-  const root = $("#view"), tmp = document.createElement("div");
-  tmp.innerHTML = html;
-  const fresh = tmp.querySelector("#wIn");
-  if (!fresh) { root.innerHTML = html; return; }
-  const copyAttrs = (to, from) => { for (const a of [...to.attributes]) to.removeAttribute(a.name); for (const a of from.attributes) to.setAttribute(a.name, a.value); };
-  copyAttrs(inp, fresh);
-  inp.value = S.typed;
-  for (let o = inp, n = fresh; o !== root; o = o.parentNode, n = n.parentNode) {
-    const P = o.parentNode, N = n.parentNode;
-    for (const c of [...P.childNodes]) if (c !== o) c.remove();
-    let before = true;
-    for (const c of [...N.childNodes]) { if (c === n) before = false; else if (before) P.insertBefore(c, o); else P.appendChild(c); }
-    if (P !== root) copyAttrs(P, N);
-  }
 }
 
 export function check() {
@@ -104,18 +87,8 @@ export function check() {
 export function answer(ok) {
   if (!S.wres) return;
   bump(S.wcur, ok); S.session++; S.last = S.wcur.id;
-  S.wcur = pickNext(); S.wres = null; S.typed = "";
+  S.wcur = pickNext(); S.wres = null; S.typed = ""; S.vopen = null;
   app.render();
-}
-
-// Accent buttons insert a character at the cursor
-export function insert(ch) {
-  const i = $("#wIn");
-  if (!i || S.wres) return;
-  const a = i.selectionStart ?? i.value.length, z = i.selectionEnd ?? a;
-  i.value = i.value.slice(0, a) + ch + i.value.slice(z);
-  S.typed = i.value;
-  i.focus(); i.setSelectionRange(a + 1, a + 1);
 }
 
 // Enter: check, then accept the suggested button

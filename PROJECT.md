@@ -16,6 +16,7 @@ source/przyklady_*.csv  zdania przykładowe do przeglądu (przed wgraniem do Exc
 tools/excel_to_json.py  Excel → app/data/words.json (sprawdza błędy)
 source/tematy.csv       tematy wszystkich słów (przegląd, wgrane w 1.4.0); nowe słowa dostają temat w kolumnie Temat w Excelu
 tools/import_examples.py  CSV ze zdaniami lub tematami → kolumny Przykład*/Temat w Excelu
+tools/conjugate.py      generator odmiany → arkusz „Odmiana” w Excelu (reguły + tabela nieregularnych IRR/DERIVED)
 app/
   index.html            szkielet strony
   version.js            JEDYNE miejsce z numerem wersji
@@ -23,12 +24,14 @@ app/
   manifest.webmanifest  nazwa, ikony, kolory aplikacji
   css/style.css         wygląd (tokeny kolorów na górze, tryb jasny i ciemny)
   data/words.json       lista słów (generowana z Excela – nie edytuj ręcznie)
+  data/verbs.json       odmiana czasowników (generowana z arkusza Odmiana – nie edytuj ręcznie)
   data/changelog.json   „Co nowego” dla każdej wersji (pl/en/it)
   js/main.js            start, górny pasek, obsługa kliknięć i klawiszy
   js/state.js           stan aplikacji, zapis postępu (localStorage)
   js/data.js            wczytanie słów, poziomy, filtry, losowanie słowa
   js/i18n.js            teksty interfejsu PL/EN/IT
-  js/ui.js              wspólne kawałki HTML (rodzajnik, kropki, etykieta)
+  js/ui.js              wspólne kawałki HTML (rodzajnik, kropki, etykieta, lista rozwijana, akcenty, keepInput)
+  js/verbs.js           odmiana: wczytanie verbs.json, czasy, sprawdzanie form, tabelki, link czasownika
   js/speech.js          wymowa (głosy urządzenia), wybór głosu IT
   js/myset.js           własny zestaw: wczytanie pliku, walidacja, szablon, strona zestawu (zasady na górze pliku)
   js/sheet.js           zapis .xlsx i odczyt .xlsx/.csv bez biblioteki
@@ -36,6 +39,7 @@ app/
   js/modes/cards.js     Fiszki
   js/modes/quiz.js      Quiz
   js/modes/write.js     Pisanie (zasady sprawdzania na górze pliku)
+  js/modes/conj.js      Odmiana (zasady na górze pliku)
   js/modes/list.js      Lista słów
 ```
 
@@ -54,6 +58,9 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 - `ex`, `exPl`, `exEn` – opcjonalne zdanie przykładowe i jego tłumaczenia (wszystkie trzy albo żadne).
 - `t` – tematy, np. `["food", "nature"]` (maks. 2). W Excelu kolumna **Temat** z polskimi nazwami rozdzielonymi `;`; lista nazw i kluczy w `TOPICS` w `data.js` i `excel_to_json.py` (trzymać zgodnie).
 
+Odmiana: arkusz **Odmiana**, kolumny Czasownik · Czas · io · tu · lui/lei · noi · voi · loro; wiersz = czasownik × czas (12 czasów, włoskie nazwy jak w `TENSES` w `conjugate.py` i `verbs.js` – trzymać zgodnie). Warianty rozdzielone `;` („va'; vai”), rodzaj przy essere jako „andato/a”, „andati/e”. Imperativo: io puste, lui/lei = Lei, loro = Loro. Puste komórki = forma nie istnieje (bisognare, brak imperativo przy dovere/piacere…).
+`app/data/verbs.json` – `{"andare": {"irr": 1, "f": [[6 form presente], [6 form passato prossimo], …]}}`; `irr` liczy `excel_to_json.py`: nieregularny = któraś forma różni się od reguł.
+
 ## Decyzje (nie roztrząsać od nowa)
 - **Id słowa = `it|indeks części mowy|rodzaj`** – na nim opiera się zapisany postęp. Nie zmieniać kolejności `POS_KEYS` w `data.js`. Poprawka tłumaczenia nie kasuje postępu; zmiana pisowni włoskiego słowa – tak.
 - **Powtórki:** pudełka Leitnera 0–5; dobrze = +1, źle = 0; „opanowane” od pudełka 3. Nowe słowa losowane z wagą 4, pudełko n z wagą 6−n.
@@ -69,10 +76,15 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 - **Liczebniki:** część mowy `numeral` (liczebnik, indeks 8 – dopisana na końcu `POS_KEYS`). A1: 1–20, 30–90, 100, 1000; milion to rzeczownik „il milione” (przeniesiony z A2 do A1).
 - **Własny zestaw:** jeden na przeglądarkę, kafelek obok poziomów („+” gdy brak, „Mój” gdy jest; kliknięcie aktywnego otwiera stronę zestawu). Działa osobno od poziomów (`S.my`). Słowa w localStorage `quaderno-italiano.myset`, postęp w `S.boxes` z prefiksem id `+|`. Szablon .xlsx generowany w przeglądarce w języku interfejsu (arkusz słów z listami rozwijanymi + arkusz z instrukcją). Kolumny rozpoznawane po nagłówkach PL/EN/IT, kolejność dowolna. Kierunki tylko dla języków z zestawu; filtr tematów ukryty. Plik z błędami nie jest zapisywany – lista błędów z numerami wierszy. Podmiana zestawu zachowuje postęp słów, które w nim zostały.
 - **Telefon (≤560 px):** poziomy, filtry, kierunek i głos są w panelu `#scope`, zwiniętym pod przyciskiem „Zakres” z podsumowaniem (`S.fold`, zapisywane; domyślnie zwinięte). Na komputerze panel zawsze rozwinięty, przycisku nie ma. Tytuł w jednej linii, bez podtytułu, zakładki trybów w jednym rzędzie. W Pisaniu przy otwartej klawiaturze ekranowej strona przewija się do karty (`fitWriting` w `ui.js`). Klawiatura nie chowa się między słowami: pole `#wIn` nigdy nie jest podmieniane ani `readonly` (`keepInput` w `write.js` przerysowuje stronę wokół niego; po sprawdzeniu wpisywanie jest blokowane w `main.js`), a stuknięcie przycisku nie zabiera mu fokusu (`mousedown` → `preventDefault`).
+- **Etykieta części mowy** (`tagHTML` w `ui.js`) pokazuje tylko część mowy, np. „SOSTANTIVO” – bez rodzaju m/f i bez koloru rodzaju (od 1.8.0), żeby nie podpowiadać. Rodzaj zostaje w danych (`g`, id słowa).
 - **Interfejs** w trzech językach (PL/EN/IT); nowy tekst dodajemy do wszystkich trzech bloków w `i18n.js`.
+- **Odmiana – źródło:** formy generuje `tools/conjugate.py` z reguł + tabeli nieregularnych (IRR, z przedrostkami przez DERIVED, np. tradurre = tra + durre). Skrypt dopisuje tylko brakujące czasowniki – ręczne poprawki w arkuszu Odmiana zostają; `python tools/conjugate.py andare` generuje podany czasownik od nowa. Posiłkowy essere: lista ESSERE + wszystkie zwrotne; oba (ho/sono) dla BOTH (salire, scendere, passare, vivere, durare, risalire).
+- **Odmiana – czasy i poziomy:** A1 presente · A2 passato prossimo, imperfetto, futuro semplice, imperativo · B1 condizionale presente, congiuntivo presente, trapassato prossimo · B2 congiuntivo imperfetto, congiuntivo passato, condizionale passato, passato remoto. Czasy wybierane listą z wielokrotnym wyborem (`S.tenses`, pusta = wszystkie, domyślnie presente); czasowniki z wybranych poziomów i tematów (filtr części mowy ignorowany); filtr wszystkie/regularne/nieregularne (`S.vreg`).
+- **Odmiana – ćwiczenie:** „Jedna forma” (czasownik + czas + losowa osoba) albo „Cała tabela” (`S.cjTable`). Ocena automatyczna, Enter = dalej. Sprawdzanie jak Pisanie do IT; przy essere wystarczy jeden rodzaj; wpisany zaimek (io, noi…) jest pomijany. Postęp: pudełko na parę czasownik+czas, id `v|czasownik|klucz czasu` w `S.boxes`.
+- **Podgląd odmiany:** w Fiszkach po odwróceniu i w Pisaniu po sprawdzeniu włoski czasownik jest klikalny (kropkowane podkreślenie) → tabelka presente (`S.vopen`). W Liście słów kliknięcie czasownika rozwija wszystkie czasy. `verbs.json` (~1 MB, gzip ~100 KB) wczytuje się w tle po starcie.
 
 ## Jak wydać nową wersję
-1. Zmiany w słowach: popraw `source/Wloski.xlsx` → `python tools/excel_to_json.py`. Nowe zdania z CSV: najpierw `python tools/import_examples.py source/przyklady_XX.csv`.
+1. Zmiany w słowach: popraw `source/Wloski.xlsx` → `python tools/excel_to_json.py`. Nowe zdania z CSV: najpierw `python tools/import_examples.py source/przyklady_XX.csv` (nowe słowa z CSV: z `--add`). Nowe czasowniki: najpierw `python tools/conjugate.py` (dopisze ich odmianę do arkusza Odmiana), potem `excel_to_json.py`.
 2. Podnieś numer w `app/version.js` i dopisz wpis w `app/data/changelog.json`.
 3. Sprawdź lokalnie: `cd app && python -m http.server 8000` → http://localhost:8000
 4. `git add -A && git commit -m "opis zmiany" && git push` – Netlify sam opublikuje (gdy repo jest połączone z Netlify).
@@ -89,14 +101,18 @@ Excel `source/Wloski.xlsx`, arkusz **Słownik**, kolumny: Włoski · Polski · A
 - **1.7.1** – telefon: zwijany panel „Zakres” (poziomy, filtry, kierunek), kompaktowy nagłówek, Pisanie mieści się nad klawiaturą. Kierunek i głos przeniesione do wiersza filtrów (też na komputerze).
 - **1.7.2** – Pisanie: klawiatura ekranowa zostaje otwarta między słowami. Przycisk „Zainstaluj”: nasłuch `beforeinstallprompt` od startu strony (wcześniej dopiero po wczytaniu słów, więc zdarzenie mogło przepaść).
 
-## Stan (2026-10-21)
-- Wersja **1.7.2**: klawiatura w Pisaniu się nie chowa; poprawiony przycisk instalacji. Do sprawdzenia przez Wojtka na prawdziwym telefonie (Android i iPhone). Zwijany panel „Zakres” na telefonie. Własny zestaw słów (jeden, z pliku .xlsx/.csv). 3568 słów (A1 400, A2 707, B1 1135, B2 1326), w tym liczebniki w A1. Wszystkie słowa mają przykładowe zdanie z tłumaczeniem PL i EN. Wszystkie słowa mają tematy (12). Poziomy łączone dowolnie; filtry części mowy i tematu z wielokrotnym wyborem. Tryby: Fiszki, Quiz, Pisanie, Lista. Kierunki IT↔PL, IT↔EN. Interfejs PL/EN/IT. PWA: instalacja, offline, pasek aktualizacji.
+- **1.8.0** – tryb Odmiana (877 czasowników, 12 czasów, jedna forma / cała tabela, wybór kilku czasów, regularne/nieregularne); podgląd presente po kliknięciu czasownika w Fiszkach i Pisaniu; pełna odmiana w Liście słów. Arkusz Odmiana w Excelu, `tools/conjugate.py`, `data/verbs.json`. 39 nowych czasowników zwrotnych (chiamarsi, svegliarsi…). Etykieta rzeczownika bez rodzaju.
+
+## Stan (2026-10-24)
+- Wersja **1.8.0** (niewydana – do commitu i push): tryb Odmiana. 916 czasowników, 234 nieregularne. Formy wygenerowane automatycznie – **do przejrzenia przez Wojtka** w arkuszu Odmiana (szczególnie czasowniki z dwoma posiłkowymi i rzadkie B2: vertere, competere bez imiesłowu; impersonalne bisognare/accadere/succedere/occorrere/spettare tylko w 3. osobie).
+- Dodane 39 czasowników zwrotnych (`source/czasowniki_zwrotne.csv`, zaakceptowane i wgrane: A1 7, A2 19, B1 13 – chiamarsi, svegliarsi, alzarsi…); divertire, sedere, sposare dostały nowe, niezwrotne przykłady. Razem 3607 słów (A1 407, A2 726, B1 1148, B2 1326), 916 czasowników z odmianą (234 nieregularne). Nowe słowa z CSV: `python tools/import_examples.py --add plik.csv`.
+- Wersja 1.7.2: klawiatura w Pisaniu się nie chowa; poprawiony przycisk instalacji. Do sprawdzenia przez Wojtka na prawdziwym telefonie (Android i iPhone). Zwijany panel „Zakres” na telefonie. Własny zestaw słów (jeden, z pliku .xlsx/.csv). 3568 słów (A1 400, A2 707, B1 1135, B2 1326), w tym liczebniki w A1. Wszystkie słowa mają przykładowe zdanie z tłumaczeniem PL i EN. Wszystkie słowa mają tematy (12). Poziomy łączone dowolnie; filtry części mowy i tematu z wielokrotnym wyborem. Tryby: Fiszki, Quiz, Pisanie, Lista. Kierunki IT↔PL, IT↔EN. Interfejs PL/EN/IT. PWA: instalacja, offline, pasek aktualizacji.
 - Kod podzielony na moduły; dane wyniesione do `data/words.json`; Excel jest źródłem.
 
 ## Do zrobienia
 1. **Poprawki aplikacji** – następny krok (lista do ustalenia z Wojtkiem).
 2. **Pisanie – uzupełnianie zdań** (IT→PL, IT→EN): zdanie po włosku z luką, podpowiedź PL/EN. Zdania są już gotowe dla wszystkich słów (`ex`/`exPl`/`exEn`); słowo w zdaniu często jest odmienione. Do decyzji: czy wymagać formy odmienionej, czy pokazywać formę podstawową.
-3. **Odmiana czasowników**: wybór poziomu i czasu, losowana osoba. Tabele odmiany w osobnym arkuszu Excela; czasy przypisane do poziomów.
+3. **Odmiana czasowników** – zrobione w 1.8.0. Do zrobienia: przegląd form w arkuszu Odmiana; ewentualnie kolejne czasy (futuro anteriore, congiuntivo trapassato, gerundio), imperativo przeczący.
 4. **Gramatyka**: zagadnienia od A1, teoria + ćwiczenia; zacząć od 5–6 tematów A1.
 5. **Słownictwo C1 i C2** – później.
 6. **Własny zestaw słów** – zrobione w 1.7.0. Szablon sprawdzony w Excelu (OK). Do sprawdzenia: Google Sheets / Numbers i wgranie pliku na iPhonie. Możliwe rozszerzenia: kilka zestawów, opcjonalne kolumny ze zdaniami przykładowymi.

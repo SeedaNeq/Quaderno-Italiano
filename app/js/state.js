@@ -11,8 +11,11 @@ export const S = {
   boxes: {},
   dd: null,                                           // open filter drop-down: "pos" | "topics" | null
   myPage: false, myErr: null, myDel: false,           // own set page: shown, upload errors, delete confirmation
+  tenses: [0], vreg: "all", cjTable: false,           // conjugation: tense indexes (empty = all), all|reg|irr verbs, whole-table exercise
   // per-session, not saved
   cur: null, shown: false, session: 0, last: null,   // flashcards
+  vopen: null,                                        // verb whose presente is shown (Flashcards, Writing)
+  cj: null, cjFocus: null,                            // conjugation: current task, focused table row
   quiz: null,                                         // quiz
   wcur: null, wres: null, typed: "",                  // writing
   q: "", confirm: false, limit: 200,                  // word list
@@ -37,6 +40,9 @@ export function loadState(levels) {
     S.topics = nums(d.topics);
     S.my = d.my === true;
     if (typeof d.fold === "boolean") S.fold = d.fold;
+    if (Array.isArray(d.tenses)) S.tenses = nums(d.tenses);
+    if (["all", "reg", "irr"].includes(d.vreg)) S.vreg = d.vreg;
+    S.cjTable = d.cjTable === true;
     if (d.boxes) S.boxes = d.boxes;
   } catch (e) {}
 }
@@ -44,7 +50,8 @@ export function loadState(levels) {
 export function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify({
-      lvls: S.lvls, mode: S.mode, dir: S.dir, ui: S.ui, itVoice: S.itVoice, pos: S.pos, topics: S.topics, my: S.my, fold: S.fold, boxes: S.boxes,
+      lvls: S.lvls, mode: S.mode, dir: S.dir, ui: S.ui, itVoice: S.itVoice, pos: S.pos, topics: S.topics, my: S.my, fold: S.fold,
+      tenses: S.tenses, vreg: S.vreg, cjTable: S.cjTable, boxes: S.boxes,
     }));
   } catch (e) {}
 }

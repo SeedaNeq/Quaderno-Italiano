@@ -118,7 +118,7 @@ header.top{display:flex;flex-direction:column;gap:18px}
 .art{color:var(--muted);font-style:italic}
 .tagrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .tag{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
-.t-m{color:var(--accent)} .t-f{color:var(--margin)} .t-o{color:var(--muted)}
+.t-o{color:var(--muted)}
 .answer{border-top:2px solid var(--margin);padding-top:12px;margin-top:6px;display:flex;flex-direction:column;gap:4px}
 .answer .main{font-size:1.4rem;font-weight:500}
 .answer .main.it{font-family:var(--f-display);font-size:1.8rem}
@@ -192,6 +192,35 @@ td .dots{font-size:.8rem;white-space:nowrap}
 .dir select{max-width:220px}
 .foot{font-size:.82rem;color:var(--muted);text-align:center;margin:0}
 
+/* conjugation: options bar, task head, answer rows, tense tables */
+.cjbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.seg{display:inline-flex;gap:4px}
+.cjcount{font-family:var(--f-mono);font-size:.7rem;color:var(--muted);margin-left:auto}
+.cjhead{display:flex;flex-direction:column;gap:6px;padding:18px 0 14px}
+.cjtr{color:var(--muted)}
+.cjtr b,.vtag{font-family:var(--f-mono);font-size:.68rem;font-weight:500;letter-spacing:.06em;margin-right:6px}
+.cjperson{flex:none;align-self:center;min-width:4.5em;font-family:var(--f-display);font-style:italic;font-size:1.25rem;color:var(--accent)}
+.cjtable{display:flex;flex-direction:column;gap:6px}
+.cjrow{display:flex;gap:10px;align-items:flex-start}
+.cjrow .cjperson{padding-top:8px;align-self:flex-start}
+.cjcell{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cjcell .answerIn{width:100%;font-size:1.1rem;padding:8px 12px}
+.cjfix{font-family:var(--f-display);font-size:1.05rem;color:var(--good)}
+.actions1{display:flex;justify-content:flex-end}
+table.conj{width:auto;min-width:220px;font-size:.95rem}
+table.conj caption{text-align:left;font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:4px 0}
+table.conj caption small{opacity:.7}
+table.conj th{text-transform:none;letter-spacing:0;font-size:.75rem;padding:4px 10px 4px 0;border:0;vertical-align:baseline}
+table.conj td{font-family:var(--f-display);font-size:1.05rem;padding:3px 0;border:0;border-bottom:1px dashed var(--line)}
+table.conj tr.hi td,table.conj tr.hi th{color:var(--accent);font-weight:700}
+.result table.conj{margin-top:8px}
+.conjgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px 20px;padding:6px 0 10px;white-space:normal}
+.conjrow > td{background:var(--paper)}
+.vlink{background:none;border:0;padding:0;font:inherit;color:inherit;text-align:inherit;text-decoration:underline dotted var(--accent);text-decoration-thickness:2px;text-underline-offset:.18em}
+.vlink:hover,.vlink[aria-expanded="true"]{color:var(--accent)}
+.vbox{margin-top:8px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);cursor:default;align-self:flex-start}
+.vtag{display:block;color:var(--muted);text-transform:uppercase;margin-top:4px}
+
 @media (max-width:560px){
   /* compact top: small title, scope folded, tabs on one line – more room for the card and the keyboard */
   .wrap{padding-block:12px 40px;gap:12px}
@@ -203,7 +232,14 @@ td .dots{font-size:.8rem;white-space:nowrap}
   .scope[data-fold="true"]{display:none}
   .modes{padding-bottom:6px}
   .tabs{flex-wrap:nowrap;overflow-x:auto;gap:2px;width:100%;scrollbar-width:none}
-  .tab{padding:7px 9px;white-space:nowrap;font-size:.95rem}
+  .tab{padding:7px 8px;white-space:nowrap;font-size:.92rem}
+  .cjcount{margin-left:0;width:100%}
+  .cjperson{min-width:0;font-size:1.1rem}
+  .cjrow .cjperson{min-width:3.4em}
+  .cjone{flex-wrap:wrap}
+  .cjone .cjperson{width:100%}
+  .inrow .btn{padding:12px 10px}
+  .inrow .btn kbd{display:none}
   .prompt{min-height:150px;padding:16px 0 12px}
   .prompt.short{min-height:0;padding:12px 0 8px}
   .page{padding:20px 14px 18px 32px}

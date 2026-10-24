@@ -1,4 +1,30 @@
 {
+ "1.8.0": {
+  "pl": [
+   "Nowy tryb „Odmiana”: odmiana 916 czasowników w 12 czasach – jedna forma albo cała tabela",
+   "Wybór kilku czasów naraz oraz czasowników regularnych lub nieregularnych",
+   "W Fiszkach (po odwróceniu) i w Pisaniu (po sprawdzeniu) kliknij czasownik, żeby zobaczyć jego odmianę w presente",
+   "W Liście słów kliknięcie czasownika pokazuje wszystkie czasy",
+   "Etykieta rzeczownika nie zdradza już rodzaju (m/f)",
+   "39 nowych czasowników zwrotnych, m.in. chiamarsi, svegliarsi, alzarsi, divertirsi"
+  ],
+  "en": [
+   "New “Conjugation” mode: 916 verbs in 12 tenses – one form or the whole table",
+   "Pick several tenses at once, and regular or irregular verbs",
+   "In Flashcards (after flipping) and Writing (after checking), tap a verb to see its presente",
+   "In the Word list, tapping a verb shows all its tenses",
+   "The noun label no longer gives away the gender (m/f)",
+   "39 new reflexive verbs, e.g. chiamarsi, svegliarsi, alzarsi, divertirsi"
+  ],
+  "it": [
+   "Nuova modalità “Coniugazione”: 916 verbi in 12 tempi – una forma o tutta la tabella",
+   "Puoi scegliere più tempi insieme e verbi regolari o irregolari",
+   "Nelle Flashcard (dopo averle girate) e nella Scrittura (dopo il controllo) tocca un verbo per vedere il presente",
+   "Nell'Elenco parole, toccando un verbo vedi tutti i tempi",
+   "L'etichetta dei sostantivi non rivela più il genere (m/f)",
+   "39 nuovi verbi riflessivi, tra cui chiamarsi, svegliarsi, alzarsi, divertirsi"
+  ]
+ },
  "1.7.2": {
   "pl": [
    "W Pisaniu klawiatura ekranowa zostaje otwarta między kolejnymi słowami",

@@ -8,7 +8,11 @@ The CSV (semicolon-separated, UTF-8) needs columns Włoski, Type, Rodzaj and at 
 Przykład, Przykład PL, Przykład EN, Temat. Only the columns present in the CSV are imported.
 Rows are matched to the sheet "Słownik" by Włoski + Type + Rodzaj (the same key as the word id).
 Missing columns are added to the sheet. Existing values are overwritten.
-Afterwards run: python tools/excel_to_json.py
+
+    python tools/import_examples.py --add source/czasowniki_zwrotne.csv
+With --add, CSV rows not found in the sheet are appended as new words (every CSV column that the sheet has,
+so the CSV should have all columns of "Słownik": Polski, Angielski, Typ, Tipo, Poziom...).
+Afterwards run: python tools/excel_to_json.py (for new verbs first: python tools/conjugate.py)
 """
 import csv
 import sys
@@ -29,9 +33,12 @@ def key(it, pos, g):
 
 
 def main():
-    if len(sys.argv) != 2:
+    args = sys.argv[1:]
+    add = "--add" in args
+    args = [a for a in args if a != "--add"]
+    if len(args) != 1:
         sys.exit(__doc__)
-    with open(sys.argv[1], encoding="utf-8-sig", newline="") as f:
+    with open(args[0], encoding="utf-8-sig", newline="") as f:
         rows = list(csv.DictReader(f, delimiter=";"))
     missing = [c for c in ["Włoski", "Type", "Rodzaj"] if rows and c not in rows[0]]
     if missing:
@@ -63,6 +70,19 @@ def main():
         done.add(k)
 
     lost = [k for k in new if k not in done]
+    if add and lost:
+        need = [c for c in ["Polski", "Angielski", "Poziom"] if c not in rows[0]]
+        if need:
+            sys.exit(f"--add: brak kolumn w CSV: {', '.join(need)}")
+        for r in rows:
+            if key(r["Włoski"], r["Type"], r["Rodzaj"]) in lost:
+                ws.append([(r.get(h) or "").strip() or None if h in r else None for h in head])
+                changed += 1
+        print(f"Dopisano {len(lost)} nowych słów: " + ", ".join(k[0] for k in lost))
+        done.update(lost)
+        lost = []
+        if ws.auto_filter.ref:
+            ws.auto_filter.ref = f"A1:{openpyxl.utils.get_column_letter(len(head))}{ws.max_row}"
     if lost:
         print("Nie znaleziono w Excelu (pominięte):")
         print("\n".join(f"  - {k[0]} ({k[1]} {k[2]})".rstrip() for k in lost))

@@ -5,7 +5,7 @@ const CACHE = "quaderno-" + self.APP_VERSION, FONTS = "quaderno-fonts";
 
 // Core files cached on install. Other files (JS modules, icons) are cached on first use.
 const CORE = ["./", "./index.html", "./version.js", "./css/style.css", "./js/main.js",
-  "./data/words.json", "./data/changelog.json", "./manifest.webmanifest", "./icons/icon-192.png"];
+  "./data/words.json", "./data/verbs.json", "./data/changelog.json", "./manifest.webmanifest", "./icons/icon-192.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE.map(u => new Request(u, { cache: "reload" })))));

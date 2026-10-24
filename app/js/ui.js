@@ -23,13 +23,9 @@ export function dots(b) {
   return `<span class="dots" title="${T().box} ${n}/5">${s}</span>`;
 }
 
-// Part-of-speech + gender chip, e.g. "SOSTANTIVO · M"
+// Part-of-speech chip, e.g. "SOSTANTIVO". The gender is never shown (no m/f, no colour): guessing it is part of the exercise.
 export function tagHTML(w) {
-  const tr = T(), it = POS[w.p][1];
-  const g = w.g === "m" ? " · m" : w.g === "f" ? " · f" : "";
-  const cls = w.g === "m" ? "t-m" : w.g === "f" ? "t-f" : "t-o";
-  const title = esc(POS[w.p][tr.posIdx]) + (w.g === "m" ? ", " + tr.m : w.g === "f" ? ", " + tr.f : "");
-  return `<span class="tag ${cls}" title="${title}">${esc(it)}${g}</span>`;
+  return `<span class="tag t-o" title="${esc(POS[w.p][T().posIdx])}">${esc(POS[w.p][1])}</span>`;
 }
 
 // Example sentence (Italian) with its translation in `lang` ("pl" or "en"); empty if the word has none
@@ -50,7 +46,54 @@ export function fitWriting() {
   const h = window.visualViewport ? visualViewport.height : innerHeight;
   fullH = Math.max(fullH, h);
   const a = document.activeElement;
-  if (phone.matches && h < fullH * 0.8 && a && a.id === "wIn") $("#view").scrollIntoView({ block: "start" });
+  if (phone.matches && h < fullH * 0.8 && a && a.classList.contains("answerIn")) $("#view").scrollIntoView({ block: "start" });
 }
+
+// Redraw #view around the focused answer box instead of replacing it: the box never loses focus,
+// so on phones the on-screen keyboard stays open between answers. `value` = what the box should show.
+export function keepInput(inp, html, value) {
+  const root = $("#view"), tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  const fresh = tmp.querySelector("#" + inp.id);
+  if (!fresh) { root.innerHTML = html; return; }
+  const copyAttrs = (to, from) => { for (const a of [...to.attributes]) to.removeAttribute(a.name); for (const a of from.attributes) to.setAttribute(a.name, a.value); };
+  copyAttrs(inp, fresh);
+  inp.value = value;
+  for (let o = inp, n = fresh; o !== root; o = o.parentNode, n = n.parentNode) {
+    const P = o.parentNode, N = n.parentNode;
+    for (const c of [...P.childNodes]) if (c !== o) c.remove();
+    let before = true;
+    for (const c of [...N.childNodes]) { if (c === n) before = false; else if (before) P.insertBefore(c, o); else P.appendChild(c); }
+    if (P !== root) copyAttrs(P, N);
+  }
+}
+
+// Multi-select filter: a button showing the selection and, when open, a list of check boxes.
+// S[kind] = list of selected indexes, empty = all. opts: [{ i, name, n }] – n is shown on the right, falsy n disables the option.
+export function dropdown(kind, label, total, opts) {
+  const tr = T(), sel = S[kind], open = S.dd === kind;
+  const one = sel.length === 1 && opts.find(o => o.i === sel[0]);
+  const summary = !sel.length ? tr.all : one ? one.name : tr.nSel(sel.length);
+  const opt = (i, name, n, on) => `<button class="ddopt" data-f="${kind}" data-i="${i}" role="checkbox" aria-checked="${on}" ${!n && !on ? "disabled" : ""}>
+    <span class="ck" aria-hidden="true"></span><span class="nm">${esc(name)}</span><small>${n}</small></button>`;
+  return `<div class="dd${open ? " open" : ""}">
+    <button class="ddbtn" data-dd="${kind}" aria-expanded="${open}"><span class="ddlbl">${esc(label)}</span><b>${esc(summary)}</b><span class="caret" aria-hidden="true">▾</span></button>
+    ${open ? `<div class="ddmenu" role="group" aria-label="${esc(label)}">${opt(-1, tr.all, total, !sel.length)}${opts.map(o => opt(o.i, o.name, o.n, sel.includes(o.i))).join("")}</div>` : ""}
+  </div>`;
+}
+
+// Accent button: insert a character at the cursor of the focused (or the first) answer box.
+// An "input" event tells the mode about the new text; a locked box (after checking) undoes it there.
+export function insertChar(ch) {
+  const a = document.activeElement, i = a && a.classList.contains("answerIn") ? a : document.querySelector(".answerIn");
+  if (!i || i.readOnly) return;
+  const s = i.selectionStart ?? i.value.length, z = i.selectionEnd ?? s;
+  i.value = i.value.slice(0, s) + ch + i.value.slice(z);
+  i.focus(); i.setSelectionRange(s + 1, s + 1);
+  i.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+// Accent buttons for typing Italian (data-ins inserts into the focused answer box)
+export const accentsHTML = () => `<div class="accents" aria-label="${T().wAccents}">${["à", "è", "é", "ì", "ò", "ù", "'"].map(c => `<button class="acc" data-ins="${c}" tabindex="-1">${c}</button>`).join("")}</div>`;
 
 export const empty = () => `<section class="page"><p class="hint" style="margin:0">${T().empty}</p></section>`;
